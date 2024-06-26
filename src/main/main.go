@@ -77,7 +77,7 @@ func setupUserServiceClient() *userrpcclient.UserServiceClient {
 }
 
 func initializeServices(userServiceClientWrapper *userrpcclient.UserServiceClient) (*walletservices.DefaultWalletWriteService, *repositories.TransactionRepository, *exchangeservices.ExchangeService) {
-	walletService := walletservices.NewWalletServiceWithClient(userServiceClientWrapper)
+	walletService := walletservices.NewWalletServiceWithClient(config.DB, userServiceClientWrapper)
 	transactionRepository := repositories.NewTransactionRepository()
 	exchangeService := exchangeservices.NewExchangeService(walletService, userServiceClientWrapper, transactionRepository)
 	return walletService, transactionRepository, exchangeService

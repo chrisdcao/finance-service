@@ -1,6 +1,7 @@
 package container
 
 import (
+	"finance-service/config"
 	"finance-service/controllers"
 	"finance-service/repositories"
 	userrpcclient "finance-service/rpc/client"
@@ -18,6 +19,7 @@ type Container struct {
 	WalletController      *controllers.WalletController
 }
 
+// TODO: CLean up `main` once this `Container` already has all the Beans initialization
 func NewContainer() *Container {
 	// Initialize gRPC client for user service
 	userServiceClientWrapper := setupUserServiceClient()
@@ -26,7 +28,7 @@ func NewContainer() *Container {
 	transactionRepository := repositories.NewTransactionRepository()
 
 	// Initialize services
-	walletService := walletservices.NewWalletServiceWithClient(userServiceClientWrapper)
+	walletService := walletservices.NewWalletServiceWithClient(config.DB, userServiceClientWrapper)
 	exchangeService := exchangeservices.NewExchangeService(walletService, userServiceClientWrapper, transactionRepository)
 
 	// Initialize controllers

@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// TODO: Move the constructed service to this place and have router using them?
 func setupRouter() *http.ServeMux {
 	mux := http.NewServeMux()
 

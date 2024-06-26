@@ -29,10 +29,10 @@ type DefaultWalletWriteService struct {
 }
 
 // TODO: Should we init all of these beans outside (for singleton) then pass it into the constructor here instead?
-func NewWalletServiceWithClient(userServiceClient *client.UserServiceClient) *DefaultWalletWriteService {
+func NewWalletServiceWithClient(db *gorm.DB, userServiceClient *client.UserServiceClient) *DefaultWalletWriteService {
 	return &DefaultWalletWriteService{
 		BalanceHandlerFactory: balanceHandlerFactory.NewBalanceHandlerFactory(),
-		WalletRepository:      repositories.NewWalletRepository(),
+		WalletRepository:      repositories.NewWalletRepository(db),
 		TransactionService:    transaction.NewTransactionWriteService(),
 		UserServiceClient:     userServiceClient,
 	}
