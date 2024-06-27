@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	txManagement "finance-service/config/transaction"
-	"finance-service/controllers/dto"
+	"finance-service/controllers/dto/request"
 	"finance-service/models"
 	"finance-service/repositories"
 	"finance-service/rpc/client"
@@ -22,23 +22,23 @@ import (
 )
 
 type DefaultWalletWriteService struct {
-	BalanceHandlerFactory *balanceHandlerFactory.BalanceHandlerFactory
-	WalletRepository      *repositories.WalletRepository
-	UserServiceClient     *client.UserServiceClient
-	TransactionService    *transaction.TransactionWriteService
+	BalanceHandlerFactory   *balanceHandlerFactory.BalanceHandlerFactory
+	WalletRepository        *repositories.WalletRepository
+	UserServiceClient       *client.UserServiceClient
+	TransactionWriteService *transaction.TransactionWriteService
 }
 
 // TODO: Should we init all of these beans outside (for singleton) then pass it into the constructor here instead?
-func NewWalletServiceWithClient(db *gorm.DB, userServiceClient *client.UserServiceClient) *DefaultWalletWriteService {
+func NewWalletWriteServiceWithClient(db *gorm.DB, userServiceClient *client.UserServiceClient) *DefaultWalletWriteService {
 	return &DefaultWalletWriteService{
-		BalanceHandlerFactory: balanceHandlerFactory.NewBalanceHandlerFactory(),
-		WalletRepository:      repositories.NewWalletRepository(db),
-		TransactionService:    transaction.NewTransactionWriteService(),
-		UserServiceClient:     userServiceClient,
+		BalanceHandlerFactory:   balanceHandlerFactory.NewBalanceHandlerFactory(),
+		WalletRepository:        repositories.NewWalletRepository(db),
+		TransactionWriteService: transaction.NewTransactionWriteService(),
+		UserServiceClient:       userServiceClient,
 	}
 }
 
-func (this *DefaultWalletWriteService) UpdateBalance(tx *gorm.DB, updateRequest dto.UpdateWalletRequest) (*walletDtos.WalletDto, error) {
+func (this *DefaultWalletWriteService) UpdateBalance(tx *gorm.DB, updateRequest request.WalletUpdateRequest) (*walletDtos.WalletDto, error) {
 	var result *walletDtos.WalletDto
 	err := txManagement.WithTransaction(this.WalletRepository.DB, tx, func(localTx *gorm.DB) error {
 		operationType, err := this.getOperationType(updateRequest.UpdateType)
@@ -55,7 +55,14 @@ func (this *DefaultWalletWriteService) UpdateBalance(tx *gorm.DB, updateRequest 
 			return err
 		}
 
-		if err := this.recordTransaction(localTx, walletId, updateRequest); err != nil {
+		transactionDto := transactionDtos.TransactionDto{
+			WalletID: walletId,
+			Amount:   updateRequest.Amount,
+			Type:     updateRequest.UpdateType,
+			Content:  updateRequest.Content,
+		}
+
+		if err := this.TransactionWriteService.CreateTransaction(localTx, transactionDto); err != nil {
 			return err
 		}
 
@@ -66,8 +73,9 @@ func (this *DefaultWalletWriteService) UpdateBalance(tx *gorm.DB, updateRequest 
 	return result, err
 }
 
-func (this *DefaultWalletWriteService) ConvertBalance(toExternalWalletId string, fromExternalWalletId string, amount float64) (*walletDtos.WalletDto, error) {
-	_, err := this.validateConvertAmount(amount)
+func (this *DefaultWalletWriteService) WalletTransfer(walletTransferRequest request.WalletTransferRequest) (*walletDtos.WalletDto, error) {
+	amount, toExternalWalletId, fromExternalWalletId := walletTransferRequest.Amount, walletTransferRequest.ExternalToWalletId, walletTransferRequest.ExternalFromWalletId
+	_, err := this.validateTransferAmount(amount)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +88,8 @@ func (this *DefaultWalletWriteService) ConvertBalance(toExternalWalletId string,
 			return err
 		}
 
-		// Update the from wallet (debit)
-		_, err = this.UpdateBalance(tx, dto.UpdateWalletRequest{
+		// Update `from` wallet (debit)
+		_, err = this.UpdateBalance(tx, request.WalletUpdateRequest{
 			ExternalWalletId: fromExternalWalletId,
 			UpdateType:       operationTypes.VNDWalletDebit.String(),
 			Amount:           amount,
@@ -91,8 +99,8 @@ func (this *DefaultWalletWriteService) ConvertBalance(toExternalWalletId string,
 			return fmt.Errorf("failed to update from wallet: %v", err)
 		}
 
-		// Update the to wallet (credit)
-		updatedAsmWallet, err = this.UpdateBalance(tx, dto.UpdateWalletRequest{
+		// Update `to` wallet (credit)
+		updatedAsmWallet, err = this.UpdateBalance(tx, request.WalletUpdateRequest{
 			ExternalWalletId: toExternalWalletId,
 			UpdateType:       operationTypes.ASMWalletTopup.String(),
 			Amount:           amount,
@@ -109,7 +117,7 @@ func (this *DefaultWalletWriteService) ConvertBalance(toExternalWalletId string,
 	return updatedAsmWallet, err
 }
 
-func (this *DefaultWalletWriteService) validateConvertAmount(amount float64) (*models.Wallet, error) {
+func (this *DefaultWalletWriteService) validateTransferAmount(amount float64) (*models.Wallet, error) {
 	if amount < 2000000 {
 		utils.Logger().Println("Transfer amount must be greater than 2.000.000")
 		return nil, errors.New("transfer amount must be greater than 2.000.000")
@@ -166,7 +174,7 @@ func (this *DefaultWalletWriteService) getWalletId(encryptedWalletId string) (ui
 	return uint(walletIdLong), nil
 }
 
-func (this *DefaultWalletWriteService) updateWalletBalance(tx *gorm.DB, walletId uint, updateRequest dto.UpdateWalletRequest, operationType operationTypes.BalanceOperation) error {
+func (this *DefaultWalletWriteService) updateWalletBalance(tx *gorm.DB, walletId uint, updateRequest request.WalletUpdateRequest, operationType operationTypes.BalanceOperation) error {
 	balanceHandler := this.BalanceHandlerFactory.GetHandler(operationType)
 	if balanceHandler == nil {
 		utils.Logger().Println("Operation type not found:", operationType)
@@ -184,17 +192,6 @@ func (this *DefaultWalletWriteService) updateWalletBalance(tx *gorm.DB, walletId
 	}
 
 	return nil
-}
-
-func (this *DefaultWalletWriteService) recordTransaction(tx *gorm.DB, walletId uint, updateRequest dto.UpdateWalletRequest) error {
-	transactionDto := transactionDtos.TransactionDto{
-		WalletID: walletId,
-		Amount:   updateRequest.Amount,
-		Type:     updateRequest.UpdateType,
-		Content:  updateRequest.Content,
-	}
-
-	return tx.Create(&transactionDto).Error
 }
 
 func (this *DefaultWalletWriteService) getUpdatedWallet(tx *gorm.DB, walletId uint) (*walletDtos.WalletDto, error) {

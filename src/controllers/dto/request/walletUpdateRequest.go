@@ -1,6 +1,6 @@
-package dto
+package request
 
-type UpdateWalletRequest struct {
+type WalletUpdateRequest struct {
 	ExternalWalletId string  `json:"externalWalletId"`
 	Amount           float64 `json:"amount"`
 	UpdateType       string  `json:"updateType"`

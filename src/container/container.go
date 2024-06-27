@@ -15,8 +15,8 @@ import (
 const userServiceAddress = "localhost:50051" // Address of the user service
 
 type Container struct {
-	TransactionController *controllers.TransactionController
-	WalletController      *controllers.WalletController
+	TransactionController *controllers.EndUserController
+	WalletController      *controllers.AdminController
 }
 
 // TODO: CLean up `main` once this `Container` already has all the Beans initialization
@@ -28,12 +28,12 @@ func NewContainer() *Container {
 	transactionRepository := repositories.NewTransactionRepository()
 
 	// Initialize services
-	walletService := walletservices.NewWalletServiceWithClient(config.DB, userServiceClientWrapper)
+	walletService := walletservices.NewWalletWriteServiceWithClient(config.DB, userServiceClientWrapper)
 	exchangeService := exchangeservices.NewExchangeService(walletService, userServiceClientWrapper, transactionRepository)
 
 	// Initialize controllers
-	transactionController := controllers.NewTransactionController()
-	walletController := controllers.NewWalletController(walletService, exchangeService)
+	transactionController := controllers.NewEndUserControllerController()
+	walletController := controllers.NewAdminController(walletService, exchangeService)
 
 	return &Container{
 		TransactionController: transactionController,
