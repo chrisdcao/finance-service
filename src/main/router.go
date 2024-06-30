@@ -1,7 +1,6 @@
 package main
 
 import (
-	"finance-service/controllers"
 	"net/http"
 )
 
@@ -9,16 +8,15 @@ import (
 func setupRouter() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	// Initialize controllers
-	transactionController := controllers.NewEndUserControllerController()
-	walletController := controllers.NewAdminController()
+	// Setup DI container
+	container := NewContainer()
 
 	// Define transaction routes
+	// TODO: based on the standard of REST APIs (using same endpoint with diff methods for diff interactions)
 	mux.HandleFunc("/transactions", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
-			transactionController.GetTransactions(w, r)
-		} else if r.Method == http.MethodPost {
-			transactionController.CreateTransaction(w, r)
+			container.EndUserController.GetTransactions(w, r)
+			// TODO: define other endpoints + rbac here for other biz logics
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -27,7 +25,7 @@ func setupRouter() *http.ServeMux {
 	// Define wallet routes
 	mux.HandleFunc("/wallets/update_balance", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
-			walletController.Topup(w, r)
+			container.AdminController.Topup(w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -35,7 +33,7 @@ func setupRouter() *http.ServeMux {
 
 	mux.HandleFunc("/wallets/convert_balance", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
-			walletController.WalletTransfer(w, r)
+			container.AdminController.WalletTransfer(w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}

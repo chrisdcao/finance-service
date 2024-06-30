@@ -1,65 +1,43 @@
 package controllers
 
 import (
-	"encoding/json"
-	"finance-service/models"
+	"finance-service/controllers/dto/response"
 	"finance-service/services/wallet/transaction"
+	"finance-service/services/wallet/transaction/dto"
 	"finance-service/utils"
 	"net/http"
 )
 
 type EndUserController struct {
-	TransactionService *transaction.TransactionWriteService
+	TransactionReadService *transaction.TransactionReadService
 }
 
-func NewEndUserControllerController() *EndUserController {
-	return &EndUserController{TransactionService: transaction.NewTransactionWriteService()}
+func NewEndUserControllerController(service *transaction.TransactionReadService) *EndUserController {
+	return &EndUserController{TransactionReadService: service}
 }
 
-func (this *EndUserController) GetTransactionsByExternalWalletId(w http.ResponseWriter, r *http.Request) {
-	transactions, err := this.TransactionService.GetTransactions(r.URL.Query().Get("uuid"))
+// TODO: Add here possible query params and path variablAes
+// Like old time REST Java Spring
+// Based on that we return the transaction (w/ or w/o filter, filters are the params passed in)
+// we always have user on jwt -> we could be :
+// /api/v2/user/transaction
+// headers: jwt
+// params: ?walletType=&actionType=&amount=&fromTime=1231245125&toTime=... (time will be in ms, utc0)
+func (this *EndUserController) GetTransactions(w http.ResponseWriter, r *http.Request) {
+	var params dto.GetTransactionsRequest
+	err := utils.ParseQueryParams(r, params)
+	if err != nil {
+		utils.Logger().Println("Error parsing query params:", err)
+		response.WriteJSONResponse(w, http.StatusBadRequest, err.Error(), nil, "Invalid query parameters")
+		return
+	}
+
+	transactions, err := this.TransactionReadService.GetTransactions(&params)
 	if err != nil {
 		utils.Logger().Println("Error getting transactions:", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	err = json.NewEncoder(w).Encode(transactions)
-	if err != nil {
-		utils.Logger().Println("Error encoding response:", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func (this *EndUserController) GetTransactionsByUserId(w http.ResponseWriter, r *http.Request) {
-	transactions, err := this.TransactionService.GetTransactions(r.URL.Query().Get("uuid"))
-	if err != nil {
-		utils.Logger().Println("Error getting transactions:", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	err = json.NewEncoder(w).Encode(transactions)
-	if err != nil {
-		utils.Logger().Println("Error encoding response:", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func (this *EndUserController) CreateTransaction(w http.ResponseWriter, r *http.Request) {
-	var transaction models.Transaction
-	if err := json.NewDecoder(r.Body).Decode(&transaction); err != nil {
-		utils.Logger().Println("Error decoding transaction:", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		response.WriteJSONResponse(w, http.StatusInternalServerError, err.Error(), nil, "Error retrieving transactions")
 		return
 	}
 
-	if err := this.TransactionService.CreateTransaction(transaction); err != nil {
-		utils.Logger().Println("Error creating transaction:", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(transaction)
+	response.WriteJSONResponse(w, http.StatusOK, "", transactions, "Transactions retrieved successfully")
 }

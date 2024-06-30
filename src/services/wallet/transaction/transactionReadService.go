@@ -2,26 +2,36 @@ package transaction
 
 import (
 	"finance-service/repositories"
+	"finance-service/services/exception"
+	transactionDtos "finance-service/services/wallet/transaction/dto"
 	"finance-service/services/wallet/transaction/mapper"
-	"finance-service/utils"
 )
 
 type TransactionReadService struct {
-	TransactionDtoMapper  *mapper.TransactionDtoMapper
+	TransactionDtoMapper  *mapper.TransactionMapper
 	TransactionRepository *repositories.TransactionRepository
 }
 
-func NewTransactionReadService() *TransactionReadService {
-	return &TransactionReadService{TransactionRepository: repositories.NewTransactionRepository()}
+func NewTransactionReadService(repository *repositories.TransactionRepository) *TransactionReadService {
+	return &TransactionReadService{TransactionRepository: repository}
 }
 
-func (this *TransactionReadService) GetTransactions(uuid string) ([]dto.TransactionDto, error) {
-	transactions, err := this.TransactionRepository.GetAllByUuid(uuid)
+func (this *TransactionReadService) GetTransactions(params *transactionDtos.GetTransactionsRequest) ([]transactionDtos.TransactionDto, error) {
+	foundTransactions, err := this.TransactionRepository.FindTransactions(
+		params.WalletType,
+		params.ActionType,
+		params.Amount,
+		params.FromTime,
+		params.ToTime,
+		params.UUID,
+	)
+
 	if err != nil {
-		utils.Logger().Println("Error fetching transactions:", err)
 		return nil, err
 	}
+	if len(foundTransactions) == 0 {
+		return nil, exception.ErrTransactionNotFound
+	}
 
-	utils.Logger().Println("Fetched user transactions", uuid, transactions)
-	return transactions, nil
+	return this.TransactionDtoMapper.FromModelListToDtoList(foundTransactions), nil
 }

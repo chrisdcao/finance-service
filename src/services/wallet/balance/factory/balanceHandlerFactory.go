@@ -12,15 +12,18 @@ type BalanceHandlerFactory struct {
 	handlers map[balanceTypes.BalanceOperation]handler.BalanceHandler
 }
 
-// Setting up the handlers and the map
-func InitializeTransactionHandlers(repo *repositories.WalletRepository) *BalanceHandlerFactory {
-	factory := NewBalanceHandlerFactory()
+// NewBalanceHandlerFactory returns a new instance of BalanceHandlerFactory with ds: <balanceType, handler>
+func NewBalanceHandlerFactory(walletRepo *repositories.WalletRepository) *BalanceHandlerFactory {
+	factory := &BalanceHandlerFactory{
+		handlers: make(map[balanceTypes.BalanceOperation]handler.BalanceHandler),
+	}
 
 	// Initialize handlers
-	asmWalletDebitHandler := debit.NewDebitTransaction(repo)
-	asmWalletTopupHandler := credit.NewCreditTransaction(repo)
-	vndWalletDebitHandler := debit.NewDebitTransaction(repo)
-	vndWalletTopupHandler := credit.NewCreditTransaction(repo)
+	// TODO: Ask Huys and add concrete impl of missing handlers
+	asmWalletDebitHandler := debit.NewDebitTransaction(walletRepo)
+	asmWalletTopupHandler := credit.NewCreditTransaction(walletRepo)
+	vndWalletDebitHandler := debit.NewDebitTransaction(walletRepo)
+	vndWalletTopupHandler := credit.NewCreditTransaction(walletRepo)
 
 	// Register handlers
 	factory.RegisterHandler(balanceTypes.ASMWalletDebit, asmWalletDebitHandler)
@@ -29,12 +32,6 @@ func InitializeTransactionHandlers(repo *repositories.WalletRepository) *Balance
 	factory.RegisterHandler(balanceTypes.VNDWalletTopup, vndWalletTopupHandler)
 
 	return factory
-}
-
-func NewBalanceHandlerFactory() *BalanceHandlerFactory {
-	return &BalanceHandlerFactory{
-		handlers: make(map[balanceTypes.BalanceOperation]handler.BalanceHandler),
-	}
 }
 
 func (f *BalanceHandlerFactory) RegisterHandler(transactionType balanceTypes.BalanceOperation, handler handler.BalanceHandler) {

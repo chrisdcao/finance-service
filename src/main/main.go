@@ -4,11 +4,6 @@ import (
 	"context"
 	"finance-service/config"
 	"finance-service/models"
-	"finance-service/repositories"
-	userrpcclient "finance-service/rpc/client"
-	"finance-service/rpc/protos/user/generated_files"
-	walletservices "finance-service/services/wallet"
-	exchangeservices "finance-service/services/wallet/balance/exchange"
 	"log"
 	"net/http"
 	"os"
@@ -18,13 +13,11 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"google.golang.org/grpc"
 )
 
 const (
-	userServiceAddress = "localhost:50051" // Address of the user service
-	grpcPort           = ":50052"          // Port for the finance gRPC service
-	httpPort           = ":3000"           // Port for the HTTP server
+	// TODO: Refactor this to .env file
+	httpPort = ":3000" // Port for the HTTP server
 )
 
 func main() {
@@ -39,12 +32,6 @@ func main() {
 
 	// Set up routes
 	router := setupRouter()
-
-	// Set up gRPC client for user service
-	userServiceClientWrapper := setupUserServiceClient()
-
-	// Initialize services and repositories
-	walletService, transactionRepository, exchangeService := initializeServices(userServiceClientWrapper)
 
 	// Start HTTP server
 	httpServer := startHTTPServer(router)
@@ -65,22 +52,6 @@ func initDatabase() {
 
 func autoMigrateModels() {
 	config.DB.AutoMigrate(&models.Wallet{}, &models.Transaction{})
-}
-
-func setupUserServiceClient() *userrpcclient.UserServiceClient {
-	conn, err := grpc.Dial(userServiceAddress, grpc.WithInsecure(), grpc.WithBlock())
-	if err != nil {
-		log.Fatalf("Failed to connect to user service: %v", err)
-	}
-	userServiceClient := generated_files.NewUserServiceClient(conn)
-	return userrpcclient.NewUserServiceClient(userServiceClient)
-}
-
-func initializeServices(userServiceClientWrapper *userrpcclient.UserServiceClient) (*walletservices.DefaultWalletWriteService, *repositories.TransactionRepository, *exchangeservices.ExchangeService) {
-	walletService := walletservices.NewWalletWriteServiceWithClient(config.DB, userServiceClientWrapper)
-	transactionRepository := repositories.NewTransactionRepository()
-	exchangeService := exchangeservices.NewExchangeService(walletService, userServiceClientWrapper, transactionRepository)
-	return walletService, transactionRepository, exchangeService
 }
 
 func startHTTPServer(router http.Handler) *http.Server {

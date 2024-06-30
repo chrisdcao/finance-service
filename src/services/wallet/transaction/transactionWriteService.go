@@ -9,16 +9,16 @@ import (
 )
 
 type TransactionWriteService struct {
-	TransactionDtoMapper  *mapper.TransactionDtoMapper
+	TransactionDtoMapper  *mapper.TransactionMapper
 	TransactionRepository *repositories.TransactionRepository
 }
 
-func NewTransactionWriteService() *TransactionWriteService {
-	return &TransactionWriteService{TransactionRepository: repositories.NewTransactionRepository()}
+func NewTransactionWriteService(transactionRepository *repositories.TransactionRepository) *TransactionWriteService {
+	return &TransactionWriteService{TransactionRepository: transactionRepository}
 }
 
 func (this *TransactionWriteService) CreateTransaction(tx *gorm.DB, transactionDto dto.TransactionDto) error {
-	transaction := this.TransactionDtoMapper.ToTransactionModel(transactionDto)
+	transaction := this.TransactionDtoMapper.FromDtoToModel(transactionDto)
 	if err := this.TransactionRepository.Create(tx, &transaction); err != nil {
 		utils.Logger().Println("Error creating transaction:", err)
 		return err

@@ -3,6 +3,7 @@ package repositories
 import (
 	"finance-service/models"
 	"gorm.io/gorm"
+	"time"
 )
 
 type TransactionRepository struct {
@@ -17,18 +18,29 @@ func (r *TransactionRepository) Create(tx *gorm.DB, transaction *models.Transact
 	return tx.Create(transaction).Error
 }
 
-func (r *TransactionRepository) GetAllByWalletID(walletID int) ([]models.Transaction, error) {
+func (r *TransactionRepository) FindTransactions(walletType, actionType string, amount float64, fromTime, toTime time.Time, uuid string) ([]models.Transaction, error) {
 	var transactions []models.Transaction
-	if err := r.DB.Where("wallet_id = ?", walletID).Find(&transactions).Error; err != nil {
-		return nil, err
-	}
-	return transactions, nil
-}
+	query := r.DB.Model(&models.Transaction{})
 
-func (r *TransactionRepository) GetAllByUuid(uuid string) ([]models.Transaction, error) {
-	var transactions []models.Transaction
-	if err := r.DB.Where("uuid = ?", uuid).Find(&transactions).Error; err != nil {
-		return nil, err
+	if walletType != "" {
+		query = query.Where("wallet_type = ?", walletType)
 	}
-	return transactions, nil
+	if actionType != "" {
+		query = query.Where("type = ?", actionType)
+	}
+	if amount != 0 {
+		query = query.Where("amount = ?", amount)
+	}
+	if !fromTime.IsZero() {
+		query = query.Where("created_on >= ?", fromTime)
+	}
+	if !toTime.IsZero() {
+		query = query.Where("created_on <= ?", toTime)
+	}
+	if uuid != "" {
+		query = query.Where("uuid = ?", uuid)
+	}
+
+	err := query.Find(&transactions).Error
+	return transactions, err
 }

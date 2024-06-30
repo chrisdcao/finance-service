@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
-	"finance-service/controllers/dto/request"
 	"finance-service/controllers/dto/response"
 	walletservices "finance-service/services/wallet"
+	"finance-service/services/wallet/dto"
 	"finance-service/utils"
 	"net/http"
 )
@@ -18,7 +18,7 @@ func NewAdminController(walletService *walletservices.DefaultWalletWriteService)
 }
 
 func (this *AdminController) Topup(w http.ResponseWriter, r *http.Request) {
-	var req request.WalletUpdateRequest
+	var req dto.WalletUpdateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.WriteJSONResponse(w, http.StatusBadRequest, err.Error(), nil, "Invalid request payload")
 		return
@@ -36,7 +36,7 @@ func (this *AdminController) Topup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (this *AdminController) WalletTransfer(w http.ResponseWriter, r *http.Request) {
-	var req request.WalletTransferRequest
+	var req dto.WalletTransferRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.WriteJSONResponse(w, http.StatusBadRequest, err.Error(), nil, "Invalid request payload")
 		return
