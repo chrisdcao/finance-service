@@ -1,8 +1,7 @@
 package response
 
 import (
-	"encoding/json"
-	"net/http"
+	"github.com/gin-gonic/gin"
 )
 
 // Response struct to encapsulate the response format
@@ -12,14 +11,12 @@ type Response struct {
 	Message string      `json:"message"`
 }
 
-// WriteJSONResponse writes the response in JSON format
-func WriteJSONResponse(w http.ResponseWriter, statusCode int, err string, data interface{}, message string) {
+// WriteJSONResponse writes the response in JSON format for Gin
+func WriteJSONResponse(ctx *gin.Context, statusCode int, err string, data interface{}, message string) {
 	response := Response{
 		Error:   err,
 		Data:    data,
 		Message: message,
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-	_ = json.NewEncoder(w).Encode(response)
+	ctx.JSON(statusCode, response)
 }

@@ -34,14 +34,14 @@ func NewBalanceHandlerFactory(walletRepo *repositories.WalletRepository) *Balanc
 	return factory
 }
 
-func (f *BalanceHandlerFactory) RegisterHandler(transactionType balanceTypes.BalanceOperation, handler handler.BalanceHandler) {
-	f.handlers[transactionType] = handler
+func (this *BalanceHandlerFactory) RegisterHandler(transactionType balanceTypes.BalanceOperation, handler handler.BalanceHandler) {
+	this.handlers[transactionType] = handler
 }
 
-func (f *BalanceHandlerFactory) GetHandler(txType balanceTypes.BalanceOperation) handler.BalanceHandler {
-	handler, exists := f.handlers[txType]
+func (this *BalanceHandlerFactory) GetHandler(txType balanceTypes.BalanceOperation) handler.BalanceHandler {
+	hand, exists := this.handlers[txType]
 	if !exists {
 		return nil
 	}
-	return handler
+	return hand
 }

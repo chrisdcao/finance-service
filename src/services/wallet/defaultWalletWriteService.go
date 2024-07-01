@@ -73,7 +73,7 @@ func (this *DefaultWalletWriteService) UpdateBalance(tx *gorm.DB, updateRequest 
 	return result, err
 }
 
-func (this *DefaultWalletWriteService) WalletTransfer(walletTransferRequest walletDtos.WalletTransferRequest) (*walletDtos.WalletDto, error) {
+func (this *DefaultWalletWriteService) WalletTransfer(walletTransferRequest walletDtos.WalletTransferRequest) ([]walletDtos.WalletDto, error) {
 	amount, toExternalWalletId, fromExternalWalletId := walletTransferRequest.Amount, walletTransferRequest.ExternalToWalletId, walletTransferRequest.ExternalFromWalletId
 	_, err := this.validateTransferAmount(amount)
 	if err != nil {
@@ -81,6 +81,7 @@ func (this *DefaultWalletWriteService) WalletTransfer(walletTransferRequest wall
 	}
 
 	var updatedAsmWallet *walletDtos.WalletDto
+	var updatedVndWallet *walletDtos.WalletDto
 	// Begin new transaction with desired isolation level (REPEATABLE READ or SERIALIZABLE)
 	err = txManagement.WithNewTransaction(this.WalletRepository.DB, sql.LevelRepeatableRead, func(tx *gorm.DB) error {
 		_, err = this.validateWallets(tx, toExternalWalletId, fromExternalWalletId, amount)
@@ -89,7 +90,7 @@ func (this *DefaultWalletWriteService) WalletTransfer(walletTransferRequest wall
 		}
 
 		// Update `from` wallet (debit)
-		_, err = this.UpdateBalance(tx, walletDtos.WalletUpdateRequest{
+		updatedVndWallet, err = this.UpdateBalance(tx, walletDtos.WalletUpdateRequest{
 			ExternalWalletId: fromExternalWalletId,
 			UpdateType:       operationTypes.VNDWalletDebit.String(),
 			Amount:           amount,
@@ -114,7 +115,12 @@ func (this *DefaultWalletWriteService) WalletTransfer(walletTransferRequest wall
 		return nil
 	})
 
-	return updatedAsmWallet, err
+	if err != nil {
+		return nil, err
+	}
+
+	// Return both wallets
+	return []walletDtos.WalletDto{*updatedVndWallet, *updatedAsmWallet}, nil
 }
 
 func (this *DefaultWalletWriteService) validateTransferAmount(amount float64) (*models.Wallet, error) {
