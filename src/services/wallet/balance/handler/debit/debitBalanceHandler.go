@@ -4,6 +4,7 @@ import (
 	"finance-service/repositories"
 	transactionDtos "finance-service/services/wallet/balance/dto"
 	"finance-service/services/wallet/balance/handler"
+	"gorm.io/gorm"
 )
 
 type DebitBalanceHandler struct {
@@ -14,7 +15,7 @@ func NewDebitTransaction(repo *repositories.WalletRepository) handler.BalanceHan
 	return &DebitBalanceHandler{Repo: repo}
 }
 
-func (t *DebitBalanceHandler) UpdateBalance(input transactionDtos.UpdateBalanceInput) error {
+func (this *DebitBalanceHandler) UpdateBalance(tx *gorm.DB, input transactionDtos.UpdateBalanceInput) error {
 	var debitAmount = -input.Amount
-	return t.Repo.UpdateBalance(input.WalletId, debitAmount)
+	return this.Repo.UpdateBalance(this.Repo.DB, input.WalletId, debitAmount)
 }

@@ -3,41 +3,51 @@ package controllers
 import (
 	"finance-service/controllers/dto/response"
 	"finance-service/services/wallet/transaction"
-	"finance-service/services/wallet/transaction/dto"
+	transactiondto "finance-service/services/wallet/transaction/dto"
 	"finance-service/utils"
+	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
+// EndUserController handles end-user related operations
 type EndUserController struct {
 	TransactionReadService *transaction.TransactionReadService
 }
 
-func NewEndUserControllerController(service *transaction.TransactionReadService) *EndUserController {
+// NewEndUserController creates a new EndUserController
+func NewEndUserController(service *transaction.TransactionReadService) *EndUserController {
 	return &EndUserController{TransactionReadService: service}
 }
 
-// TODO: Add here possible query params and path variablAes
-// Like old time REST Java Spring
-// Based on that we return the transaction (w/ or w/o filter, filters are the params passed in)
-// we always have user on jwt -> we could be :
-// /api/v2/user/transaction
-// headers: jwt
-// params: ?walletType=&actionType=&amount=&fromTime=1231245125&toTime=... (time will be in ms, utc0)
-func (this *EndUserController) GetTransactions(w http.ResponseWriter, r *http.Request) {
-	var params dto.GetTransactionsRequest
-	err := utils.ParseQueryParams(r, params)
-	if err != nil {
+// GetTransactions godoc
+// @Summary Get transactions
+// @Description Get all transactions based on filters
+// @Tags transactions
+// @Accept  json
+// @Produce  json
+// @Param walletType query string false "Wallet Type"
+// @Param actionType query string false "Action Type"
+// @Param amount query string false "Amount"
+// @Param fromTime query int64 false "From Time (ms)"
+// @Param toTime query int64 false "To Time (ms)"
+// @Success 200 {object} dto.GenericResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /api/v2/user/transaction [get]
+func (c *EndUserController) GetTransactions(ctx *gin.Context) {
+	var params transactiondto.GetTransactionsRequest
+	if err := ctx.ShouldBindQuery(&params); err != nil {
 		utils.Logger().Println("Error parsing query params:", err)
-		response.WriteJSONResponse(w, http.StatusBadRequest, err.Error(), nil, "Invalid query parameters")
+		response.WriteJSONResponse(ctx, http.StatusBadRequest, err.Error(), nil, "Invalid query parameters")
 		return
 	}
 
-	transactions, err := this.TransactionReadService.GetTransactions(&params)
+	transactions, err := c.TransactionReadService.GetTransactions(&params)
 	if err != nil {
 		utils.Logger().Println("Error getting transactions:", err)
-		response.WriteJSONResponse(w, http.StatusInternalServerError, err.Error(), nil, "Error retrieving transactions")
+		response.WriteJSONResponse(ctx, http.StatusInternalServerError, err.Error(), nil, "Error retrieving transactions")
 		return
 	}
 
-	response.WriteJSONResponse(w, http.StatusOK, "", transactions, "Transactions retrieved successfully")
+	response.WriteJSONResponse(ctx, http.StatusOK, "", transactions, "Transactions retrieved successfully")
 }

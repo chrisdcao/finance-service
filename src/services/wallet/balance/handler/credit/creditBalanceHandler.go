@@ -15,7 +15,7 @@ func NewCreditTransaction(repo *repositories.WalletRepository) handler.BalanceHa
 	return &CreditBalanceHandler{Repo: repo}
 }
 
-func (t *CreditBalanceHandler) UpdateBalance(tx *gorm.DB, input transactionDtos.UpdateBalanceInput) error {
+func (this *CreditBalanceHandler) UpdateBalance(tx *gorm.DB, input transactionDtos.UpdateBalanceInput) error {
 	var creditAmount = input.Amount
-	return t.Repo.UpdateBalance(tx, input.WalletId, creditAmount)
+	return this.Repo.UpdateBalance(tx, input.WalletId, creditAmount)
 }
