@@ -25,8 +25,8 @@ func NewEndUserController(service *transaction.TransactionReadService) *EndUserC
 // @Tags transactions
 // @Accept  json
 // @Produce  json
-// @Param walletType query string false "Wallet Type"
-// @Param actionType query string false "Action Type"
+// @Param walletType query string false "Wallet TransactionType"
+// @Param actionType query string false "Action TransactionType"
 // @Param amount query string false "Amount"
 // @Param fromTime query int64 false "From Time (ms)"
 // @Param toTime query int64 false "To Time (ms)"

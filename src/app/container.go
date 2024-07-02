@@ -21,7 +21,7 @@ type Container struct {
 	AdminController   *controllers.AdminController
 }
 
-// TODO: Clean up `app` once this `Container` already has all the Beans initialization
+// TODO: Clean up `main` once this `Container` already has all the Beans initialization
 func NewContainer() *Container {
 	// Initialize gRPC client for user service (NOT USED FOR NOW)
 	_ = setupUserServiceClient()
@@ -43,7 +43,7 @@ func NewContainer() *Container {
 	)
 
 	// Initialize Controllers
-	endUserController := controllers.NewEndUserControllerController(transactionReadService)
+	endUserController := controllers.NewEndUserController(transactionReadService)
 	adminController := controllers.NewAdminController(walletWriteService)
 
 	return &Container{

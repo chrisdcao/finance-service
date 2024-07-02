@@ -56,10 +56,10 @@ func (this *DefaultWalletWriteService) UpdateBalance(tx *gorm.DB, updateRequest 
 		}
 
 		transactionDto := transactionDtos.TransactionDto{
-			WalletID: walletId,
-			Amount:   updateRequest.Amount,
-			Type:     updateRequest.UpdateType,
-			Content:  updateRequest.Content,
+			WalletID:        walletId,
+			Amount:          updateRequest.Amount,
+			TransactionType: updateRequest.UpdateType,
+			Content:         updateRequest.Content,
 		}
 
 		if err := this.TransactionWriteService.CreateTransaction(localTx, transactionDto); err != nil {
