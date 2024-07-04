@@ -1,10 +1,11 @@
 package handler
 
 import (
+	"context"
 	transactionDtos "finance-service/services/wallet/balance/dto"
 	"gorm.io/gorm"
 )
 
 type BalanceHandler interface {
-	UpdateBalance(tx *gorm.DB, input transactionDtos.UpdateBalanceInput) error
+	UpdateBalance(ctx context.Context, tx *gorm.DB, input transactionDtos.UpdateBalanceInput) error
 }

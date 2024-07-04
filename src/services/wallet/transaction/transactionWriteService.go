@@ -4,7 +4,7 @@ import (
 	"finance-service/repositories"
 	"finance-service/services/wallet/transaction/dto"
 	"finance-service/services/wallet/transaction/mapper"
-	"finance-service/utils"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -20,8 +20,7 @@ func NewTransactionWriteService(transactionRepository *repositories.TransactionR
 func (this *TransactionWriteService) CreateTransaction(tx *gorm.DB, transactionDto dto.TransactionDto) error {
 	transaction := this.TransactionDtoMapper.FromDtoToModel(transactionDto)
 	if err := this.TransactionRepository.Create(tx, &transaction); err != nil {
-		utils.Logger().Println("Error creating transaction:", err)
-		return err
+		return errors.Wrap(err, "failed to create transaction")
 	}
 	return nil
 }

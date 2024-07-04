@@ -5,17 +5,23 @@ import (
 	"finance-service/controllers/dto/response"
 	walletservices "finance-service/services/wallet"
 	"finance-service/services/wallet/dto"
-	"finance-service/utils"
+	"finance-service/utils/log"
+	logDto "finance-service/utils/log/dto"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
 type AdminController struct {
-	WalletService *walletservices.DefaultWalletWriteService
+	WalletService *walletservices.DefaultWalletService
+	Logger        *log.CommonLogger
 }
 
-func NewAdminController(walletService *walletservices.DefaultWalletWriteService) *AdminController {
-	return &AdminController{WalletService: walletService}
+func NewAdminController(walletService *walletservices.DefaultWalletService) *AdminController {
+	return &AdminController{
+		WalletService: walletService,
+		Logger:        log.NewCommonLogger(),
+	}
 }
 
 // Topup godoc
@@ -30,17 +36,25 @@ func NewAdminController(walletService *walletservices.DefaultWalletWriteService)
 // @Router /wallets/update_balance [post]
 func (this *AdminController) Topup(ctx *gin.Context) {
 	var req dto.WalletUpdateRequest
+
 	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
 		response.WriteJSONResponse(ctx, http.StatusBadRequest, err.Error(), nil, "Invalid request payload")
-		return
 	}
 
-	walletDto, err := this.WalletService.UpdateBalance(nil, req)
+	walletDto, err := this.WalletService.UpdateBalance(ctx, nil, req)
 	if err != nil {
-		utils.Logger().Println("Error updating balance:", err)
-		// TODO: Do we need a custom error code here?
+		this.Logger.Log(logDto.LogEntry{
+			Level:   logrus.ErrorLevel,
+			TraceID: log.GetTraceIDFromGinContextOrUnknown(ctx),
+			Event:   "process_request",
+			Message: "Request processing failed",
+			Context: map[string]interface{}{
+				"error": err,
+			},
+		})
+
+		// TODO: Do we need a custom error code here? Discuss with Duc Huy
 		response.WriteJSONResponse(ctx, http.StatusInternalServerError, err.Error(), nil, "Error updating balance")
-		return
 	}
 
 	response.WriteJSONResponse(ctx, http.StatusOK, "", walletDto, "Balance updated successfully")
@@ -60,14 +74,21 @@ func (this *AdminController) WalletTransfer(ctx *gin.Context) {
 	var req dto.WalletTransferRequest
 	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
 		response.WriteJSONResponse(ctx, http.StatusBadRequest, err.Error(), nil, "Invalid request payload")
-		return
 	}
 
-	postTransferredWallets, err := this.WalletService.WalletTransfer(req)
+	postTransferredWallets, err := this.WalletService.WalletTransfer(ctx, req)
 	if err != nil {
-		utils.Logger().Println("Error converting balance:", err)
+		this.Logger.Log(logDto.LogEntry{
+			Level:   logrus.ErrorLevel,
+			TraceID: log.GetTraceIDFromGinContextOrUnknown(ctx),
+			Event:   "process_request",
+			Message: "Request processing failed",
+			Context: map[string]interface{}{
+				"error": err,
+			},
+		})
+
 		response.WriteJSONResponse(ctx, http.StatusInternalServerError, err.Error(), nil, "Error updating balance")
-		return
 	}
 
 	response.WriteJSONResponse(ctx, http.StatusOK, "", postTransferredWallets, "Balance updated successfully")

@@ -6,6 +6,7 @@ import (
 	"finance-service/services/wallet/balance/handler"
 	"finance-service/services/wallet/balance/handler/credit"
 	"finance-service/services/wallet/balance/handler/debit"
+	"github.com/pkg/errors"
 )
 
 type BalanceHandlerFactory struct {
@@ -38,10 +39,10 @@ func (this *BalanceHandlerFactory) RegisterHandler(transactionType balanceTypes.
 	this.handlers[transactionType] = handler
 }
 
-func (this *BalanceHandlerFactory) GetHandler(txType balanceTypes.BalanceOperation) handler.BalanceHandler {
+func (this *BalanceHandlerFactory) GetHandler(txType balanceTypes.BalanceOperation) (handler.BalanceHandler, error) {
 	hand, exists := this.handlers[txType]
 	if !exists {
-		return nil
+		return nil, errors.New("handler for operation type" + txType.String() + " not found")
 	}
-	return hand
+	return hand, nil
 }

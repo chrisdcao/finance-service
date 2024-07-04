@@ -4,7 +4,6 @@ import (
 	"time"
 )
 
-// TODO: Why should this model interact with jSON? think of cleaning it to only using gorm tag if can!!
 type Transaction struct {
 	ID              uint      `gorm:"primaryKey"`
 	WalletID        uint      `gorm:"wallet_id"`

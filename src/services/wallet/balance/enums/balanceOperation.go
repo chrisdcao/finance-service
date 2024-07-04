@@ -1,6 +1,8 @@
 package enums
 
-import "fmt"
+import (
+	"github.com/pkg/errors"
+)
 
 type BalanceOperation int
 
@@ -32,7 +34,7 @@ func (this BalanceOperation) String() string {
 func ParseTopupType(str string) (BalanceOperation, error) {
 	t, ok := stringToTopupType[str]
 	if !ok {
-		return 0, fmt.Errorf("invalid topup type: %s", str)
+		return 0, errors.New("invalid topup type: " + str)
 	}
 	return t, nil
 }

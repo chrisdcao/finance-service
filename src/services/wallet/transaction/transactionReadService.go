@@ -5,6 +5,7 @@ import (
 	"finance-service/services/exception"
 	transactionDtos "finance-service/services/wallet/transaction/dto"
 	"finance-service/services/wallet/transaction/mapper"
+	"github.com/pkg/errors"
 )
 
 type TransactionReadService struct {
@@ -27,10 +28,10 @@ func (this *TransactionReadService) GetTransactions(params *transactionDtos.GetT
 	)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Failed to get transactions from repository!")
 	}
 	if len(foundTransactions) == 0 {
-		return nil, exception.ErrTransactionNotFound
+		return nil, errors.Wrap(exception.ErrTransactionNotFound, "No transaction found for given params!")
 	}
 
 	return this.TransactionDtoMapper.FromModelListToDtoList(foundTransactions), nil

@@ -36,7 +36,7 @@ func NewContainer() *Container {
 
 	balanceHandlerFactory := factory.NewBalanceHandlerFactory(walletRepository)
 
-	walletWriteService := walletservices.NewWalletWriteServiceWithClient(
+	walletWriteService := walletservices.NewWalletService(
 		balanceHandlerFactory,
 		walletRepository,
 		transactionWriteService,

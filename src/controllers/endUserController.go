@@ -4,19 +4,26 @@ import (
 	"finance-service/controllers/dto/response"
 	"finance-service/services/wallet/transaction"
 	transactiondto "finance-service/services/wallet/transaction/dto"
-	"finance-service/utils"
+	"finance-service/utils/log"
+	"finance-service/utils/log/dto"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
 // EndUserController handles end-user related operations
 type EndUserController struct {
 	TransactionReadService *transaction.TransactionReadService
+	Logger                 *log.CommonLogger
 }
 
 // NewEndUserController creates a new EndUserController
 func NewEndUserController(service *transaction.TransactionReadService) *EndUserController {
-	return &EndUserController{TransactionReadService: service}
+	return &EndUserController{
+		TransactionReadService: service,
+		Logger:                 log.NewCommonLogger(),
+	}
 }
 
 // GetTransactions godoc
@@ -34,17 +41,35 @@ func NewEndUserController(service *transaction.TransactionReadService) *EndUserC
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /api/v2/user/transaction [get]
-func (c *EndUserController) GetTransactions(ctx *gin.Context) {
+func (this *EndUserController) GetTransactions(ctx *gin.Context) {
+	traceId := log.ExtractTraceIDFromContextOrUnknown(ctx)
+
 	var params transactiondto.GetTransactionsRequest
+
 	if err := ctx.ShouldBindQuery(&params); err != nil {
-		utils.Logger().Println("Error parsing query params:", err)
+		this.Logger.Log(dto.LogEntry{
+			Level:      logrus.ErrorLevel,
+			Event:      "parsing_query_params",
+			Message:    "Error parsing query params",
+			Context:    map[string]interface{}{"params": params},
+			StackTrace: errors.WithStack(err),
+		})
 		response.WriteJSONResponse(ctx, http.StatusBadRequest, err.Error(), nil, "Invalid query parameters")
 		return
 	}
 
-	transactions, err := c.TransactionReadService.GetTransactions(&params)
+	transactions, err := this.TransactionReadService.GetTransactions(&params)
 	if err != nil {
-		utils.Logger().Println("Error getting transactions:", err)
+		this.Logger.Log(dto.LogEntry{
+			Level:   logrus.ErrorLevel,
+			TraceID: traceId,
+			Event:   "getting_transactions",
+			Message: "Error getting transactions",
+			Context: map[string]interface{}{
+				"params": params,
+			},
+			StackTrace: errors.WithStack(err),
+		})
 		response.WriteJSONResponse(ctx, http.StatusInternalServerError, err.Error(), nil, "Error retrieving transactions")
 		return
 	}

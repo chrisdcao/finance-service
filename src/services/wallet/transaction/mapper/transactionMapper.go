@@ -2,6 +2,7 @@ package mapper
 
 import (
 	"finance-service/models"
+	walletDtos "finance-service/services/wallet/dto"
 	"finance-service/services/wallet/transaction/dto"
 )
 
@@ -35,4 +36,13 @@ func (this *TransactionMapper) FromModelListToDtoList(transactions []models.Tran
 		transactionDtos = append(transactionDtos, transactionDto)
 	}
 	return transactionDtos
+}
+
+func (this *TransactionMapper) FromWalletIdAndRequesToDto(walletId uint, updateRequest walletDtos.WalletUpdateRequest) dto.TransactionDto {
+	return dto.TransactionDto{
+		WalletID:        walletId,
+		Amount:          updateRequest.Amount,
+		TransactionType: updateRequest.UpdateType,
+		Content:         updateRequest.Content,
+	}
 }
