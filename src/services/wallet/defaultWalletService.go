@@ -11,7 +11,7 @@ import (
 	"finance-service/services/wallet/transaction"
 	"finance-service/services/wallet/transaction/mapper"
 	"finance-service/services/wallet/validator"
-	"fmt"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -28,7 +28,6 @@ func NewWalletService(
 	balanceHandlerFactory *balanceHandlerFactory.BalanceHandlerFactory,
 	transactionWriteService *transaction.TransactionWriteService,
 	transactionMapper *mapper.TransactionMapper,
-	// TODO: Add this to the container initialization
 	walletValidator *validator.DefaultWalletValidator,
 	walletReadService *DefaultWalletReadService,
 	walletWriteService *DefaultWalletWriteService,
@@ -46,11 +45,11 @@ func NewWalletService(
 func (this *DefaultWalletService) UpdateBalance(ctx context.Context, tx *gorm.DB, updateRequest walletDtos.WalletUpdateRequest) (*walletDtos.WalletDto, error) {
 	walletId, err := this.WalletWriteService.UpdateBalance(ctx, tx, updateRequest)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to update wallet balance")
 	}
 
 	result, err := this.WalletReadService.GetWallet(ctx, tx, walletId)
-	return result, err
+	return result, errors.Wrap(err, "failed to get wallet")
 }
 
 func (this *DefaultWalletService) WalletTransfer(ctx context.Context, walletTransferRequest walletDtos.WalletTransferRequest) ([]walletDtos.WalletDto, error) {
@@ -58,7 +57,7 @@ func (this *DefaultWalletService) WalletTransfer(ctx context.Context, walletTran
 
 	err := this.WalletValidator.ValidateTransferAmount(ctx, amount)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to validate transfer amount")
 	}
 
 	// Begin new transaction with desired isolation level (REPEATABLE READ or SERIALIZABLE)
@@ -66,7 +65,7 @@ func (this *DefaultWalletService) WalletTransfer(ctx context.Context, walletTran
 	err = txManagement.WithNewTransaction(config.DB, sql.LevelRepeatableRead, func(tx *gorm.DB) error {
 		err = this.WalletValidator.ValidateWallets(ctx, tx, toExternalWalletId, fromExternalWalletId, amount)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to validate wallets")
 		}
 
 		// Update `from` wallet (debit)
@@ -77,7 +76,7 @@ func (this *DefaultWalletService) WalletTransfer(ctx context.Context, walletTran
 			Content:          "Chuyen tien tu VND Wallet sang ASM Wallet",
 		})
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to update from wallet")
 		}
 
 		// Update `to` wallet (credit)
@@ -88,14 +87,14 @@ func (this *DefaultWalletService) WalletTransfer(ctx context.Context, walletTran
 			Content:          "Nhan tien tu VND Wallet",
 		})
 		if err != nil {
-			return fmt.Errorf("failed to update to wallet: %v", err)
+			return errors.Wrap(err, "failed to update to wallet")
 		}
 
 		return nil
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to transfer wallet")
 	}
 
 	// Return both wallets

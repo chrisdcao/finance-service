@@ -12,6 +12,10 @@ var DUMMY_VALUE = uint(0)
 type WalletIdParser struct {
 }
 
+func NewWalletIdParser() *WalletIdParser {
+	return &WalletIdParser{}
+}
+
 func (this *WalletIdParser) ParseFromEncryption(ctx context.Context, encryptedWalletId string) (uint, error) {
 	walletIdStr, err := cryptography.Decrypt(encryptedWalletId)
 	if err != nil {

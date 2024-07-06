@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"finance-service/models"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"time"
 )
@@ -15,7 +16,7 @@ func NewTransactionRepository(db *gorm.DB) *TransactionRepository {
 }
 
 func (r *TransactionRepository) Create(tx *gorm.DB, transaction *models.Transaction) error {
-	return tx.Create(transaction).Error
+	return errors.Wrap(tx.Create(transaction).Error, "failed to create transaction")
 }
 
 func (r *TransactionRepository) FindTransactions(walletType, actionType string, amount float64, fromTime, toTime time.Time, uuid string) ([]models.Transaction, error) {
@@ -42,5 +43,5 @@ func (r *TransactionRepository) FindTransactions(walletType, actionType string, 
 	}
 
 	err := query.Find(&transactions).Error
-	return transactions, err
+	return transactions, errors.Wrap(err, "failed to find transactions")
 }

@@ -13,6 +13,7 @@ import (
 	"finance-service/services/wallet/transaction/mapper"
 	"finance-service/services/wallet/validator"
 	"finance-service/utils/log"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
@@ -26,13 +27,11 @@ type DefaultWalletWriteService struct {
 	Logger                  *log.CommonLogger
 }
 
-// TODO: Should we init all of these beans outside (for singleton) then pass it into the constructor here instead?
 func NewWalletWriteService(
 	balanceHandlerFactory *balanceHandlerFactory.BalanceHandlerFactory,
 	walletRepository *repositories.WalletRepository,
 	transactionWriteService *transaction.TransactionWriteService,
 	transactionMapper *mapper.TransactionMapper,
-	// TODO: Add this to the container initialization
 	walletValidator *validator.DefaultWalletValidator,
 	walletIdParser *parser.WalletIdParser,
 ) *DefaultWalletWriteService {
@@ -54,28 +53,28 @@ func (this *DefaultWalletWriteService) UpdateBalance(ctx context.Context, tx *go
 		operationType, err := this.getOperationType(updateRequest.UpdateType)
 
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to get operation type")
 		}
 
 		walletId, err = this.WalletIdParser.ParseFromEncryption(ctx, updateRequest.ExternalWalletId)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "failed to parse wallet id")
 		}
 
 		if err := this.updateWalletBalance(ctx, localTx, walletId, operationType, updateRequest); err != nil {
-			return err
+			return errors.Wrap(err, "failed to update wallet balance")
 		}
 
 		transactionDto := this.TransactionMapper.FromWalletIdAndRequesToDto(walletId, updateRequest)
 
 		if err := this.TransactionWriteService.CreateTransaction(localTx, transactionDto); err != nil {
-			return err
+			return errors.Wrap(err, "failed to create transaction")
 		}
 
 		return nil
 	})
 
-	return walletId, err
+	return walletId, errors.Wrap(err, "failed to update wallet balance")
 }
 
 func (this *DefaultWalletWriteService) getOperationType(topupType string) (operationTypes.BalanceOperation, error) {
@@ -85,13 +84,15 @@ func (this *DefaultWalletWriteService) getOperationType(topupType string) (opera
 func (this *DefaultWalletWriteService) updateWalletBalance(ctx context.Context, tx *gorm.DB, walletId uint, operationType operationTypes.BalanceOperation, updateRequest walletDtos.WalletUpdateRequest) error {
 	balanceHandler, err := this.BalanceHandlerFactory.GetHandler(operationType)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to get balance handler")
 	}
 
-	return balanceHandler.UpdateBalance(ctx, tx, balanceDtos.UpdateBalanceInput{
+	err = balanceHandler.UpdateBalance(ctx, tx, balanceDtos.UpdateBalanceInput{
 		WalletId:         walletId,
 		WalletType:       updateRequest.WalletType,
 		Amount:           updateRequest.Amount,
 		BalanceOperation: operationType,
 	})
+
+	return errors.Wrap(err, "failed to update wallet balance")
 }

@@ -9,6 +9,10 @@ import (
 type TransactionMapper struct {
 }
 
+func NewTransactionMapper() *TransactionMapper {
+	return &TransactionMapper{}
+}
+
 func (this *TransactionMapper) FromDtoToModel(dto dto.TransactionDto) models.Transaction {
 	return models.Transaction{
 		ID:              dto.ID,

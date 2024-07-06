@@ -8,6 +8,7 @@ import (
 	"finance-service/utils/log"
 	logDto "finance-service/utils/log/dto"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"net/http"
 )
@@ -49,12 +50,12 @@ func (this *AdminController) Topup(ctx *gin.Context) {
 			Event:   "process_request",
 			Message: "Request processing failed",
 			Context: map[string]interface{}{
-				"error": err,
+				"error": errors.WithStack(err),
 			},
 		})
 
 		// TODO: Do we need a custom error code here? Discuss with Duc Huy
-		response.WriteJSONResponse(ctx, http.StatusInternalServerError, err.Error(), nil, "Error updating balance")
+		response.WriteJSONResponse(ctx, http.StatusInternalServerError, errors.WithStack(err).Error(), nil, "Error updating balance")
 	}
 
 	response.WriteJSONResponse(ctx, http.StatusOK, "", walletDto, "Balance updated successfully")
@@ -84,11 +85,11 @@ func (this *AdminController) WalletTransfer(ctx *gin.Context) {
 			Event:   "process_request",
 			Message: "Request processing failed",
 			Context: map[string]interface{}{
-				"error": err,
+				"error": errors.WithStack(err),
 			},
 		})
 
-		response.WriteJSONResponse(ctx, http.StatusInternalServerError, err.Error(), nil, "Error updating balance")
+		response.WriteJSONResponse(ctx, http.StatusInternalServerError, errors.WithStack(err).Error(), nil, "Error updating balance")
 	}
 
 	response.WriteJSONResponse(ctx, http.StatusOK, "", postTransferredWallets, "Balance updated successfully")
