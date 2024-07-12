@@ -2,14 +2,14 @@ package transaction
 
 import (
 	"finance-service/repositories"
-	"finance-service/services/wallet/transaction/dto"
-	"finance-service/services/wallet/transaction/mapper"
+	"finance-service/services/transaction/dto"
+	"finance-service/services/transaction/mapper"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
 
 type TransactionWriteService struct {
-	TransactionDtoMapper  *mapper.TransactionMapper
+	TransactionMapper     *mapper.TransactionMapper
 	TransactionRepository *repositories.TransactionRepository
 }
 
@@ -17,10 +17,10 @@ func NewTransactionWriteService(transactionRepository *repositories.TransactionR
 	return &TransactionWriteService{TransactionRepository: transactionRepository}
 }
 
-func (this *TransactionWriteService) CreateTransaction(tx *gorm.DB, transactionDto dto.TransactionDto) error {
-	transaction := this.TransactionDtoMapper.FromDtoToModel(transactionDto)
+func (this *TransactionWriteService) CreateTransaction(tx *gorm.DB, transactionDto dto.TransactionDto) (*dto.TransactionDto, error) {
+	transaction := this.TransactionMapper.FromDtoToModel(transactionDto)
 	if err := this.TransactionRepository.Create(tx, &transaction); err != nil {
-		return errors.Wrap(err, "failed to create transaction")
+		return nil, errors.Wrap(err, "failed to create transaction")
 	}
-	return nil
+	return this.TransactionMapper.FromModelToDto(transaction), nil
 }

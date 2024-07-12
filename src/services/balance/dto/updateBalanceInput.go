@@ -1,21 +1,22 @@
 package dto
 
 import (
-	"finance-service/services/wallet/balance/enums"
+	"finance-service/services/balance/enums"
 	"fmt"
 )
 
 type UpdateBalanceInput struct {
-	WalletId         uint
+	UserId           string
 	WalletType       string
-	Amount           float64
+	DiffAmount       float64
 	BalanceOperation enums.BalanceOperation
+	Content          string
 }
 
 // ToString method to return a string representation of UpdateBalanceInput
 func (this *UpdateBalanceInput) ToString() string {
 	return fmt.Sprintf(
-		"UpdateBalanceInput{WalletId: %d, WalletType: %s, Amount: %.2f, BalanceOperation: %s}",
-		this.WalletId, this.WalletType, this.Amount, this.BalanceOperation,
+		"UpdateBalanceInput{UserId: %s, WalletType: %s, DiffAmount: %.2f, BalanceOperation: %s}",
+		this.UserId, this.WalletType, this.DiffAmount, this.BalanceOperation,
 	)
 }

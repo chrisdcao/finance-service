@@ -34,7 +34,6 @@ func AutoMigrateModels() log2.FunctionWithNoArgs {
 }
 
 func StartHTTPServer(router *gin.Engine) *http.Server {
-	log.Printf("Started StartHTTPServer on %s", httpPort)
 	server := &http.Server{
 		Addr:    httpPort,
 		Handler: router,
@@ -51,7 +50,6 @@ func StartHTTPServer(router *gin.Engine) *http.Server {
 		}
 	}()
 
-	log.Printf("Finished StartHTTPServer on %s", httpPort)
 	return server
 }
 

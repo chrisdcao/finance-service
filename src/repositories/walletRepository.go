@@ -14,7 +14,7 @@ func NewWalletRepository(db *gorm.DB) *WalletRepository {
 	return &WalletRepository{DB: db}
 }
 
-func (r *WalletRepository) UpdateBalance(tx *gorm.DB, walletID uint, newBalance float64) error {
+func (r *WalletRepository) UpdateBalance(tx *gorm.DB, wallet *models.Wallet) error {
 	err := tx.Model(&models.Wallet{}).Where("id = ?", walletID).Update("balance", newBalance).Error
 	if err != nil {
 		return errors.Wrap(err, "failed to update wallet balance")

@@ -1,9 +1,10 @@
-package services
+package read
 
 import (
 	"context"
 	"finance-service/models"
 	"finance-service/repositories"
+	walletservices "finance-service/services/wallet"
 	walletDtos "finance-service/services/wallet/dto"
 	"finance-service/services/wallet/parser"
 	"github.com/pkg/errors"
@@ -13,12 +14,14 @@ import (
 type DefaultWalletReadService struct {
 	WalletRepository *repositories.WalletRepository
 	WalletIdParser   *parser.WalletIdParser
+	WalletMapper     *walletservices.WalletMapper
 }
 
-func NewWalletReadService(repository *repositories.WalletRepository, idParser *parser.WalletIdParser) *DefaultWalletReadService {
+func NewWalletReadService(repository *repositories.WalletRepository, idParser *parser.WalletIdParser, walletMapper *walletservices.WalletMapper) *DefaultWalletReadService {
 	return &DefaultWalletReadService{
 		WalletRepository: repository,
 		WalletIdParser:   idParser,
+		WalletMapper:     walletMapper,
 	}
 }
 
@@ -36,17 +39,24 @@ func (this *DefaultWalletReadService) GetFromExternalId(ctx context.Context, ext
 	return wallet, nil
 }
 
-func (this *DefaultWalletReadService) GetWallet(ctx context.Context, tx *gorm.DB, walletId uint) (*walletDtos.WalletDto, error) {
+func (this *DefaultWalletReadService) GetWalletByUserId(ctx context.Context, tx *gorm.DB, userId uint) (*walletDtos.WalletDto, error) {
+	wallet, err := this.WalletRepository.GetByUserID(tx, userId)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get wallet")
+	}
+
+	walletDto := this.WalletMapper.FromModelToDto(*wallet)
+
+	return walletDto, nil
+}
+
+func (this *DefaultWalletReadService) GetWalletById(ctx context.Context, tx *gorm.DB, walletId uint) (*walletDtos.WalletDto, error) {
 	wallet, err := this.WalletRepository.GetByID(tx, walletId)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get wallet")
 	}
 
-	walletDto := &walletDtos.WalletDto{
-		Balance:    wallet.Balance,
-		UserId:     wallet.UserId,
-		WalletType: wallet.WalletType,
-	}
+	walletDto := this.WalletMapper.FromModelToDto(*wallet)
 
 	return walletDto, nil
 }

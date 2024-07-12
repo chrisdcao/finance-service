@@ -18,6 +18,73 @@
     "host": "localhost:3000",
     "basePath": "/",
     "paths": {
+        "/transactions/get": {
+            "get": {
+                "description": "Get all transactions based on filters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transactions"
+                ],
+                "summary": "Get transactions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Wallet TransactionType",
+                        "name": "walletType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Action TransactionType",
+                        "name": "actionType",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Amount",
+                        "name": "amount",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "From Time (ms)",
+                        "name": "fromTime",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "To Time (ms)",
+                        "name": "toTime",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/wallets/convert_balance": {
             "post": {
                 "description": "Transfer balance from one wallet to another",

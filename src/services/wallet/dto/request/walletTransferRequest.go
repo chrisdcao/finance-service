@@ -1,4 +1,4 @@
-package dto
+package request
 
 type WalletTransferRequest struct {
 	ExternalFromWalletId string  `json:"externalFromWalletId"`

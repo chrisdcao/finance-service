@@ -2,10 +2,11 @@ package factory
 
 import (
 	"finance-service/repositories"
-	balanceTypes "finance-service/services/wallet/balance/enums"
-	"finance-service/services/wallet/balance/handler"
-	"finance-service/services/wallet/balance/handler/credit"
-	"finance-service/services/wallet/balance/handler/debit"
+	transactionDtos "finance-service/services/balance/dto"
+	balanceTypes "finance-service/services/balance/enums"
+	"finance-service/services/balance/handler"
+	"finance-service/services/balance/handler/credit"
+	"finance-service/services/balance/handler/debit"
 	"github.com/pkg/errors"
 )
 
@@ -39,10 +40,10 @@ func (this *BalanceHandlerFactory) RegisterHandler(transactionType balanceTypes.
 	this.handlers[transactionType] = handler
 }
 
-func (this *BalanceHandlerFactory) GetHandler(txType balanceTypes.BalanceOperation) (handler.BalanceHandler, error) {
-	hand, exists := this.handlers[txType]
+func (this *BalanceHandlerFactory) GetHandler(updateInput transactionDtos.UpdateBalanceInput) (handler.BalanceHandler, error) {
+	hand, exists := this.handlers[updateInput.BalanceOperation]
 	if !exists {
-		return nil, errors.New("handler for operation type" + txType.String() + " not found")
+		return nil, errors.New("handler for operation type" + updateInput.BalanceOperation.String() + " not found")
 	}
 	return hand, nil
 }

@@ -4,15 +4,15 @@ import (
 	"finance-service/config"
 	"finance-service/controllers"
 	"finance-service/repositories"
+	"finance-service/services/balance/factory"
+	transaction2 "finance-service/services/transaction"
+	"finance-service/services/transaction/mapper"
 	walletservices "finance-service/services/wallet"
-	"finance-service/services/wallet/balance/factory"
 	"finance-service/services/wallet/parser"
-	"finance-service/services/wallet/transaction"
-	"finance-service/services/wallet/transaction/mapper"
+	"finance-service/services/wallet/read"
 	"finance-service/services/wallet/validator"
+	"finance-service/services/wallet/write"
 )
-
-//const userServiceAddress = "localhost:50051" // Address of the user service
 
 type Container struct {
 	EndUserController *controllers.EndUserController
@@ -20,13 +20,10 @@ type Container struct {
 }
 
 func NewContainer() *Container {
-	// Initialize gRPC client for user service (NOT USED FOR NOW)
-	//_ = setupUserServiceClient()
-
 	// Initialize services
 	transactionRepository := repositories.NewTransactionRepository(config.DB)
-	transactionReadService := transaction.NewTransactionReadService(transactionRepository)
-	transactionWriteService := transaction.NewTransactionWriteService(transactionRepository)
+	transactionReadService := transaction2.NewTransactionReadService(transactionRepository)
+	transactionWriteService := transaction2.NewTransactionWriteService(transactionRepository)
 	transactionMapper := mapper.NewTransactionMapper()
 
 	// Initialize Repos
@@ -34,10 +31,10 @@ func NewContainer() *Container {
 	balanceHandlerFactory := factory.NewBalanceHandlerFactory(walletRepository)
 
 	walletIdParser := parser.NewWalletIdParser()
-	walletReadService := walletservices.NewWalletReadService(walletRepository, walletIdParser)
+	walletReadService := read.NewWalletReadService(walletRepository, walletIdParser)
 	walletValidator := validator.NewWalletValidator(walletReadService)
 
-	walletWriteService := walletservices.NewWalletWriteService(
+	walletWriteService := write.NewWalletWriteService(
 		balanceHandlerFactory,
 		walletRepository,
 		transactionWriteService,
@@ -64,12 +61,3 @@ func NewContainer() *Container {
 		AdminController:   adminController,
 	}
 }
-
-//func setupUserServiceClient() *userrpcclient.UserServiceClient {
-//	conn, err := grpc.Dial(userServiceAddress, grpc.WithInsecure(), grpc.WithBlock())
-//	if err != nil {
-//		log.Fatalf("Failed to connect to user service: %v", err)
-//	}
-//	userServiceClient := generated_files.NewUserServiceClient(conn)
-//	return userrpcclient.NewUserServiceClient(userServiceClient)
-//}

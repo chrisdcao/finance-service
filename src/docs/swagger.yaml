@@ -44,6 +44,50 @@ info:
   title: Finance Service API
   version: "1.0"
 paths:
+  /transactions/get:
+    get:
+      consumes:
+      - application/json
+      description: Get all transactions based on filters
+      parameters:
+      - description: Wallet TransactionType
+        in: query
+        name: walletType
+        type: string
+      - description: Action TransactionType
+        in: query
+        name: actionType
+        type: string
+      - description: Amount
+        in: query
+        name: amount
+        type: string
+      - description: From Time (ms)
+        in: query
+        name: fromTime
+        type: integer
+      - description: To Time (ms)
+        in: query
+        name: toTime
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get transactions
+      tags:
+      - transactions
   /wallets/convert_balance:
     post:
       consumes:

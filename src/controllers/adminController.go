@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"finance-service/controllers/dto/response"
 	walletservices "finance-service/services/wallet"
-	"finance-service/services/wallet/dto"
+	"finance-service/services/wallet/dto/request"
+	response2 "finance-service/services/wallet/dto/response"
 	"finance-service/utils/log"
 	logDto "finance-service/utils/log/dto"
 	"github.com/gin-gonic/gin"
@@ -25,6 +26,7 @@ func NewAdminController(walletService *walletservices.DefaultWalletService) *Adm
 	}
 }
 
+// TODO: The update request should be receiving an user_id and return the transaction that was made?
 // Topup godoc
 // @Summary Top up wallet balance
 // @Description Top up the balance of a wallet
@@ -36,13 +38,14 @@ func NewAdminController(walletService *walletservices.DefaultWalletService) *Adm
 // @Failure 400 {object} response.Response
 // @Router /wallets/update_balance [post]
 func (this *AdminController) Topup(ctx *gin.Context) {
-	var req dto.WalletUpdateRequest
+	var req request.WalletUpdateRequest
 
 	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
 		response.WriteJSONResponse(ctx, http.StatusBadRequest, err.Error(), nil, "Invalid request payload")
 	}
 
-	walletDto, err := this.WalletService.UpdateBalance(ctx, nil, req)
+	_, err := this.WalletService.UpdateBalance(ctx, nil, req)
+
 	if err != nil {
 		this.Logger.Log(logDto.LogEntry{
 			Level:   logrus.ErrorLevel,
@@ -58,9 +61,13 @@ func (this *AdminController) Topup(ctx *gin.Context) {
 		response.WriteJSONResponse(ctx, http.StatusInternalServerError, errors.WithStack(err).Error(), nil, "Error updating balance")
 	}
 
+	resp := response2.NewWalletUpdateResponse(walletDto)
+
 	response.WriteJSONResponse(ctx, http.StatusOK, "", walletDto, "Balance updated successfully")
 }
 
+// TODO: This return user ID and password diff with before? What the hell?
+// This should be returning 2 transaction within a transaction array?
 // WalletTransfer godoc
 // @Summary Convert wallet balance
 // @Description Transfer balance from one wallet to another
@@ -72,7 +79,7 @@ func (this *AdminController) Topup(ctx *gin.Context) {
 // @Failure 400 {object} response.Response
 // @Router /wallets/convert_balance [post]
 func (this *AdminController) WalletTransfer(ctx *gin.Context) {
-	var req dto.WalletTransferRequest
+	var req request.WalletTransferRequest
 	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
 		response.WriteJSONResponse(ctx, http.StatusBadRequest, err.Error(), nil, "Invalid request payload")
 	}

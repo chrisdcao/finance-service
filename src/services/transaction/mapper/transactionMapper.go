@@ -2,8 +2,8 @@ package mapper
 
 import (
 	"finance-service/models"
-	walletDtos "finance-service/services/wallet/dto"
-	"finance-service/services/wallet/transaction/dto"
+	transactionDtos "finance-service/services/balance/dto"
+	"finance-service/services/transaction/dto"
 )
 
 type TransactionMapper struct {
@@ -15,7 +15,6 @@ func NewTransactionMapper() *TransactionMapper {
 
 func (this *TransactionMapper) FromDtoToModel(dto dto.TransactionDto) models.Transaction {
 	return models.Transaction{
-		ID:              dto.ID,
 		WalletID:        dto.WalletID,
 		Amount:          dto.Amount,
 		TransactionType: dto.TransactionType,
@@ -23,9 +22,8 @@ func (this *TransactionMapper) FromDtoToModel(dto dto.TransactionDto) models.Tra
 	}
 }
 
-func (this *TransactionMapper) FromModelToDto(transaction models.Transaction) dto.TransactionDto {
-	return dto.TransactionDto{
-		ID:              transaction.ID,
+func (this *TransactionMapper) FromModelToDto(transaction models.Transaction) *dto.TransactionDto {
+	return &dto.TransactionDto{
 		WalletID:        transaction.WalletID,
 		Amount:          transaction.Amount,
 		TransactionType: transaction.TransactionType,
@@ -37,16 +35,16 @@ func (this *TransactionMapper) FromModelListToDtoList(transactions []models.Tran
 	var transactionDtos []dto.TransactionDto
 	for _, transaction := range transactions {
 		transactionDto := this.FromModelToDto(transaction)
-		transactionDtos = append(transactionDtos, transactionDto)
+		transactionDtos = append(transactionDtos, *transactionDto)
 	}
 	return transactionDtos
 }
 
-func (this *TransactionMapper) FromWalletIdAndRequesToDto(walletId uint, updateRequest walletDtos.WalletUpdateRequest) dto.TransactionDto {
-	return dto.TransactionDto{
-		WalletID:        walletId,
-		Amount:          updateRequest.Amount,
-		TransactionType: updateRequest.UpdateType,
-		Content:         updateRequest.Content,
+func (this *TransactionMapper) FromUpdateBalanceInputToDto(updateInput transactionDtos.UpdateBalanceInput) *dto.TransactionDto {
+	return &dto.TransactionDto{
+		WalletID:        updateInput.WalletId,
+		Amount:          updateInput.DiffAmount,
+		TransactionType: updateInput.BalanceOperation.String(),
+		Content:         updateInput.Content,
 	}
 }

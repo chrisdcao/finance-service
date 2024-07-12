@@ -3,8 +3,8 @@ package debit
 import (
 	"context"
 	"finance-service/repositories"
-	transactionDtos "finance-service/services/wallet/balance/dto"
-	"finance-service/services/wallet/balance/handler"
+	transactionDtos "finance-service/services/balance/dto"
+	"finance-service/services/balance/handler"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
@@ -18,8 +18,8 @@ func NewDebitTransaction(repo *repositories.WalletRepository) handler.BalanceHan
 }
 
 func (this *DebitBalanceHandler) UpdateBalance(ctx context.Context, tx *gorm.DB, input transactionDtos.UpdateBalanceInput) error {
-	var debitAmount = -input.Amount
-	err := this.Repo.UpdateBalance(this.Repo.DB, input.WalletId, debitAmount)
+	var debitAmount = -input.DiffAmount
+	err := this.Repo.UpdateBalance(this.Repo.DB, nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to update wallet balance: "+input.ToString())
 	}

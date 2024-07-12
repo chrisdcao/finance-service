@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"finance-service/controllers/dto/response"
-	"finance-service/services/wallet/transaction"
-	transactiondto "finance-service/services/wallet/transaction/dto"
+	"finance-service/services/transaction"
+	transactiondto "finance-service/services/transaction/dto"
 	"finance-service/utils/log"
 	"finance-service/utils/log/dto"
 	"github.com/gin-gonic/gin"
@@ -34,13 +34,13 @@ func NewEndUserController(service *transaction.TransactionReadService) *EndUserC
 // @Produce  json
 // @Param walletType query string false "Wallet TransactionType"
 // @Param actionType query string false "Action TransactionType"
-// @Param amount query string false "Amount"
+// @Param amount query string false "DiffAmount"
 // @Param fromTime query int64 false "From Time (ms)"
 // @Param toTime query int64 false "To Time (ms)"
-// @Success 200 {object} dto.GenericResponse
-// @Failure 400 {object} dto.ErrorResponse
-// @Failure 500 {object} dto.ErrorResponse
-// @Router /api/v2/user/transaction [get]
+// @Success 200 {object} response.Response
+// @Failure 400 {object} response.Response
+// @Failure 500 {object} response.Response
+// @Router /transactions/get [get]
 func (this *EndUserController) GetTransactions(ctx *gin.Context) {
 	traceId := log.ExtractTraceIDFromContextOrUnknown(ctx)
 

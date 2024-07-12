@@ -3,7 +3,7 @@ package validator
 import (
 	"context"
 	"finance-service/models"
-	walletservices "finance-service/services/wallet"
+	walletservices "finance-service/services/wallet/read"
 	"fmt"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
