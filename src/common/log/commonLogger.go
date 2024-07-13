@@ -1,8 +1,8 @@
 package log
 
 import (
+	"finance-service/common/log/dto"
 	"finance-service/utils"
-	"finance-service/utils/log/dto"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"os"

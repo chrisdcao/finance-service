@@ -2,7 +2,7 @@ package log
 
 import (
 	"context"
-	"finance-service/utils/log/dto"
+	"finance-service/common/log/dto"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"

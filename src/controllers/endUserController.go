@@ -1,11 +1,12 @@
 package controllers
 
 import (
+	log2 "finance-service/common/log"
+	"finance-service/common/log/dto"
+	"finance-service/common/web"
 	transactiondto "finance-service/controllers/transaction/dto/request"
+	"finance-service/controllers/transaction/dto/response"
 	"finance-service/services/transaction"
-	"finance-service/utils/log"
-	"finance-service/utils/log/dto"
-	"finance-service/utils/web"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -15,34 +16,35 @@ import (
 // EndUserController handles end-user related operations
 type EndUserController struct {
 	TransactionReadService *transaction.TransactionReadService
-	Logger                 *log.CommonLogger
+	Logger                 *log2.CommonLogger
 }
 
 // NewEndUserController creates a new EndUserController
 func NewEndUserController(service *transaction.TransactionReadService) *EndUserController {
 	return &EndUserController{
 		TransactionReadService: service,
-		Logger:                 log.NewCommonLogger(),
+		Logger:                 log2.NewCommonLogger(),
 	}
 }
 
 // GetTransactions godoc
-// @Summary Get transactions
-// @Description Get all transactions based on filters
-// @Tags transactions
+// @Summary Get Transactions
+// @Description Retrieve transactions based on query parameters
+// @Tags EndUser
 // @Accept  json
 // @Produce  json
-// @Param walletType query string false "Wallet TransactionType"
-// @Param actionType query string false "Action TransactionType"
-// @Param amount query string false "DiffAmount"
-// @Param fromTime query int64 false "From Time (ms)"
-// @Param toTime query int64 false "To Time (ms)"
-// @Success 200 {object} response.Response
-// @Failure 400 {object} response.Response
-// @Failure 500 {object} response.Response
-// @Router /transactions/get [get]
+// @Param   wallet_type query string false "Wallet Type"
+// @Param   action_type query string false "Action Type"
+// @Param   amount query number false "Amount"
+// @Param   from_time query string false "From Time"
+// @Param   to_time query string false "To Time"
+// @Param   uuid query string false "UUID"
+// @Success 200 {object} response.GetTransactionsResponse
+// @Failure 400 {object} web.Response "Invalid query parameters"
+// @Failure 500 {object} web.Response "Error retrieving transactionDtos"
+// @Router /enduser/transactions [get]
 func (this *EndUserController) GetTransactions(ctx *gin.Context) {
-	traceId := log.ExtractTraceIDFromContextOrUnknown(ctx)
+	traceId := log2.ExtractTraceIDFromContextOrUnknown(ctx)
 
 	var params transactiondto.GetTransactionsRequest
 
@@ -58,21 +60,21 @@ func (this *EndUserController) GetTransactions(ctx *gin.Context) {
 		return
 	}
 
-	transactions, err := this.TransactionReadService.GetTransactions(params)
+	transactionDtos, err := this.TransactionReadService.GetTransactions(params)
 	if err != nil {
 		this.Logger.Log(dto.LogEntry{
 			Level:   logrus.ErrorLevel,
 			TraceID: traceId,
 			Event:   "getting_transactions",
-			Message: "Error getting transactions",
+			Message: "Error getting transactionDtos",
 			Context: map[string]interface{}{
 				"params": params,
 			},
 			StackTrace: errors.WithStack(err),
 		})
-		web.WriteJSONResponse(ctx, http.StatusInternalServerError, err.Error(), nil, "Error retrieving transactions")
+		web.WriteJSONResponse(ctx, http.StatusInternalServerError, err.Error(), nil, "Error retrieving transactionDtos")
 		return
 	}
 
-	web.WriteJSONResponse(ctx, http.StatusOK, "", transactions, "Transactions retrieved successfully")
+	web.WriteJSONResponse(ctx, http.StatusOK, "", response.NewGetTransactionsResponse(transactionDtos), "Transactions retrieved successfully")
 }

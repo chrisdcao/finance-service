@@ -2,9 +2,9 @@ package configs
 
 import (
 	"context"
+	log2 "finance-service/common/log"
 	"finance-service/configs/db/connection"
 	"finance-service/models"
-	log2 "finance-service/utils/log"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"log"

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"finance-service/common/log"
 	txManagement "finance-service/configs/db/transaction"
 	walletDtos "finance-service/controllers/wallet/dto/request"
 	"finance-service/models"
@@ -13,7 +14,6 @@ import (
 	balanceHandlerFactory "finance-service/services/wallet/factory"
 	mapper2 "finance-service/services/wallet/mapper"
 	"finance-service/services/wallet/validator"
-	"finance-service/utils/log"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )

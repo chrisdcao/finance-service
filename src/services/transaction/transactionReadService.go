@@ -1,11 +1,11 @@
 package transaction
 
 import (
+	"finance-service/common/exception"
 	dto2 "finance-service/controllers/transaction/dto/request"
 	"finance-service/repositories"
 	"finance-service/services/transaction/dto"
 	"finance-service/services/transaction/mapper"
-	"finance-service/utils/exception"
 	"github.com/pkg/errors"
 )
 

@@ -2,7 +2,7 @@ package main
 
 import (
 	"finance-service/configs"
-	_ "finance-service/docs" // Import for documents to be made
+	_ "finance-service/controllers/docs" // Import for documents to be made
 	"finance-service/routes"
 )
 
