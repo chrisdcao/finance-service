@@ -25,7 +25,7 @@ func (this WalletType) String() string {
 	return walletTypeToString[this]
 }
 
-func Parse(str string) (WalletType, error) {
+func ParseStringToWalletType(str string) (WalletType, error) {
 	t, ok := stringToWalletType[str]
 	if !ok {
 		return 0, errors.New("invalid topup type: " + str)

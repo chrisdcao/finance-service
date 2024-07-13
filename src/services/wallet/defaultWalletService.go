@@ -5,16 +5,13 @@ import (
 	"database/sql"
 	"finance-service/configs"
 	txManagement "finance-service/configs/transaction"
-	request2 "finance-service/controllers/dto/request"
-	operationTypes "finance-service/services/balance/enums"
-	balanceHandlerFactory "finance-service/services/balance/factory"
+	"finance-service/controllers/wallet/dto/request"
 	"finance-service/services/transaction"
 	"finance-service/services/transaction/dto"
 	"finance-service/services/transaction/mapper"
 	walletTypes "finance-service/services/wallet/enums"
-	"finance-service/services/wallet/read"
+	balanceHandlerFactory "finance-service/services/wallet/factory"
 	"finance-service/services/wallet/validator"
-	"finance-service/services/wallet/write"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
@@ -24,8 +21,8 @@ type DefaultWalletService struct {
 	TransactionWriteService *transaction.TransactionWriteService
 	TransactionMapper       *mapper.TransactionMapper
 	WalletValidator         *validator.DefaultWalletValidator
-	WalletReadService       *read.DefaultWalletReadService
-	WalletWriteService      *write.DefaultWalletWriteService
+	WalletReadService       *DefaultWalletReadService
+	WalletWriteService      *DefaultWalletWriteService
 }
 
 func NewWalletService(
@@ -33,8 +30,8 @@ func NewWalletService(
 	transactionWriteService *transaction.TransactionWriteService,
 	transactionMapper *mapper.TransactionMapper,
 	walletValidator *validator.DefaultWalletValidator,
-	walletReadService *read.DefaultWalletReadService,
-	walletWriteService *write.DefaultWalletWriteService,
+	walletReadService *DefaultWalletReadService,
+	walletWriteService *DefaultWalletWriteService,
 ) *DefaultWalletService {
 	return &DefaultWalletService{
 		BalanceHandlerFactory:   balanceHandlerFactory,
@@ -46,7 +43,7 @@ func NewWalletService(
 	}
 }
 
-func (this *DefaultWalletService) UpdateBalance(ctx context.Context, tx *gorm.DB, updateRequest request2.WalletUpdateRequest) (*dto.TransactionDto, error) {
+func (this *DefaultWalletService) UpdateBalance(ctx context.Context, tx *gorm.DB, updateRequest request.WalletUpdateRequest) (*dto.TransactionDto, error) {
 	transactionDto, err := this.WalletWriteService.UpdateBalance(ctx, tx, updateRequest)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update wallet balance")
@@ -54,7 +51,7 @@ func (this *DefaultWalletService) UpdateBalance(ctx context.Context, tx *gorm.DB
 	return transactionDto, nil
 }
 
-func (this *DefaultWalletService) WalletTransfer(ctx context.Context, transferRequest request2.WalletTransferRequest) ([]dto.TransactionDto, error) {
+func (this *DefaultWalletService) WalletTransfer(ctx context.Context, transferRequest request.WalletTransferRequest) ([]dto.TransactionDto, error) {
 	err := this.WalletValidator.ValidateTransferAmount(ctx, transferRequest.Amount)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate transfer amount")
@@ -68,10 +65,10 @@ func (this *DefaultWalletService) WalletTransfer(ctx context.Context, transferRe
 		}
 
 		// Update `from` wallet (debit)
-		tx1, err = this.UpdateBalance(ctx, tx, request2.WalletUpdateRequest{
+		tx1, err = this.UpdateBalance(ctx, tx, request.WalletUpdateRequest{
 			UserId:     transferRequest.UserId,
 			WalletType: walletTypes.VNDWallet.String(),
-			UpdateType: operationTypes.Debit.String(),
+			UpdateType: walletTypes.Debit.String(),
 			Amount:     transferRequest.Amount,
 			Content:    "Chuyen tien tu VND Wallet sang ASM Wallet",
 		})
@@ -80,10 +77,10 @@ func (this *DefaultWalletService) WalletTransfer(ctx context.Context, transferRe
 		}
 
 		// Update `to` wallet (credit)
-		tx2, err = this.UpdateBalance(ctx, tx, request2.WalletUpdateRequest{
+		tx2, err = this.UpdateBalance(ctx, tx, request.WalletUpdateRequest{
 			UserId:     transferRequest.UserId,
 			WalletType: walletTypes.ASMWallet.String(),
-			UpdateType: operationTypes.Credit.String(),
+			UpdateType: walletTypes.Credit.String(),
 			Amount:     transferRequest.Amount,
 			Content:    "Nhan tien tu VND Wallet",
 		})

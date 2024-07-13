@@ -1,17 +1,17 @@
-package write
+package services
 
 import (
 	"context"
 	txManagement "finance-service/configs/transaction"
-	walletDtos "finance-service/controllers/dto/request"
+	walletDtos "finance-service/controllers/wallet/dto/request"
 	"finance-service/models"
 	"finance-service/repositories"
-	balanceDtos "finance-service/services/balance/dto"
-	balanceHandlerFactory "finance-service/services/balance/factory"
-	mapper2 "finance-service/services/balance/mapper"
 	"finance-service/services/transaction"
 	"finance-service/services/transaction/dto"
 	"finance-service/services/transaction/mapper"
+	balanceDtos "finance-service/services/wallet/dto"
+	balanceHandlerFactory "finance-service/services/wallet/factory"
+	mapper2 "finance-service/services/wallet/mapper"
 	"finance-service/services/wallet/parser"
 	"finance-service/services/wallet/validator"
 	"finance-service/utils/log"

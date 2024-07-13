@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	"finance-service/controllers/dto/response"
+	transactiondto "finance-service/controllers/transaction/dto/request"
 	"finance-service/services/transaction"
-	transactiondto "finance-service/services/transaction/dto"
 	"finance-service/utils/log"
 	"finance-service/utils/log/dto"
+	"finance-service/utils/web"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -54,11 +54,11 @@ func (this *EndUserController) GetTransactions(ctx *gin.Context) {
 			Context:    map[string]interface{}{"params": params},
 			StackTrace: errors.WithStack(err),
 		})
-		response.WriteJSONResponse(ctx, http.StatusBadRequest, err.Error(), nil, "Invalid query parameters")
+		web.WriteJSONResponse(ctx, http.StatusBadRequest, err.Error(), nil, "Invalid query parameters")
 		return
 	}
 
-	transactions, err := this.TransactionReadService.GetTransactions(&params)
+	transactions, err := this.TransactionReadService.GetTransactions(params)
 	if err != nil {
 		this.Logger.Log(dto.LogEntry{
 			Level:   logrus.ErrorLevel,
@@ -70,9 +70,9 @@ func (this *EndUserController) GetTransactions(ctx *gin.Context) {
 			},
 			StackTrace: errors.WithStack(err),
 		})
-		response.WriteJSONResponse(ctx, http.StatusInternalServerError, err.Error(), nil, "Error retrieving transactions")
+		web.WriteJSONResponse(ctx, http.StatusInternalServerError, err.Error(), nil, "Error retrieving transactions")
 		return
 	}
 
-	response.WriteJSONResponse(ctx, http.StatusOK, "", transactions, "Transactions retrieved successfully")
+	web.WriteJSONResponse(ctx, http.StatusOK, "", transactions, "Transactions retrieved successfully")
 }

@@ -3,14 +3,12 @@ package configs
 import (
 	"finance-service/controllers"
 	"finance-service/repositories"
-	"finance-service/services/balance/factory"
 	transaction2 "finance-service/services/transaction"
 	"finance-service/services/transaction/mapper"
 	walletservices "finance-service/services/wallet"
+	"finance-service/services/wallet/factory"
 	"finance-service/services/wallet/parser"
-	"finance-service/services/wallet/read"
 	"finance-service/services/wallet/validator"
-	"finance-service/services/wallet/write"
 )
 
 type Container struct {
@@ -30,10 +28,10 @@ func NewContainer() *Container {
 	balanceHandlerFactory := factory.NewBalanceHandlerFactory(walletRepository)
 
 	walletIdParser := parser.NewWalletIdParser()
-	walletReadService := read.NewWalletReadService(walletRepository, walletIdParser)
+	walletReadService := walletservices.NewWalletReadService(walletRepository, walletIdParser)
 	walletValidator := validator.NewWalletValidator(walletReadService)
 
-	walletWriteService := write.NewWalletWriteService(
+	walletWriteService := walletservices.NewWalletWriteService(
 		balanceHandlerFactory,
 		walletRepository,
 		transactionWriteService,

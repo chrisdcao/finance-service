@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"finance-service/models"
-	transactionDtos "finance-service/services/balance/dto"
+	transactionDtos "finance-service/services/wallet/dto"
 	"gorm.io/gorm"
 )
 

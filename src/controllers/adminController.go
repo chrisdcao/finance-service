@@ -2,11 +2,12 @@ package controllers
 
 import (
 	"encoding/json"
-	request2 "finance-service/controllers/dto/request"
-	"finance-service/controllers/dto/response"
+	"finance-service/controllers/wallet/dto/request"
+	response2 "finance-service/controllers/wallet/dto/response"
 	walletservices "finance-service/services/wallet"
 	"finance-service/utils/log"
 	logDto "finance-service/utils/log/dto"
+	"finance-service/utils/web"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -37,10 +38,10 @@ func NewAdminController(walletService *walletservices.DefaultWalletService) *Adm
 // @Failure 400 {object} response.Response
 // @Router /wallets/update_balance [post]
 func (this *AdminController) Topup(ctx *gin.Context) {
-	var req request2.WalletUpdateRequest
+	var req request.WalletUpdateRequest
 
 	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
-		response.WriteJSONResponse(ctx, http.StatusBadRequest, err.Error(), nil, "Invalid request payload")
+		web.WriteJSONResponse(ctx, http.StatusBadRequest, err.Error(), nil, "Invalid request payload")
 	}
 
 	transactionDto, err := this.WalletService.UpdateBalance(ctx, nil, req)
@@ -57,12 +58,12 @@ func (this *AdminController) Topup(ctx *gin.Context) {
 		})
 
 		// TODO: Do we need a custom error code here? Discuss with Duc Huy
-		response.WriteJSONResponse(ctx, http.StatusInternalServerError, errors.WithStack(err).Error(), nil, "Error updating balance")
+		web.WriteJSONResponse(ctx, http.StatusInternalServerError, errors.WithStack(err).Error(), nil, "Error updating balance")
 	}
 
-	resp := response.NewWalletUpdateResponse(*transactionDto)
+	resp := response2.NewWalletUpdateResponse(*transactionDto)
 
-	response.WriteJSONResponse(ctx, http.StatusOK, "", resp, "Balance updated successfully")
+	web.WriteJSONResponse(ctx, http.StatusOK, "", resp, "Balance updated successfully")
 }
 
 // This should be returning 2 transaction within a transaction array?
@@ -77,9 +78,9 @@ func (this *AdminController) Topup(ctx *gin.Context) {
 // @Failure 400 {object} response.Response
 // @Router /wallets/convert_balance [post]
 func (this *AdminController) WalletTransfer(ctx *gin.Context) {
-	var req request2.WalletTransferRequest
+	var req request.WalletTransferRequest
 	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
-		response.WriteJSONResponse(ctx, http.StatusBadRequest, err.Error(), nil, "Invalid request payload")
+		web.WriteJSONResponse(ctx, http.StatusBadRequest, err.Error(), nil, "Invalid request payload")
 	}
 
 	createdTransactions, err := this.WalletService.WalletTransfer(ctx, req)
@@ -94,10 +95,10 @@ func (this *AdminController) WalletTransfer(ctx *gin.Context) {
 			},
 		})
 
-		response.WriteJSONResponse(ctx, http.StatusInternalServerError, errors.WithStack(err).Error(), nil, "Error updating balance")
+		web.WriteJSONResponse(ctx, http.StatusInternalServerError, errors.WithStack(err).Error(), nil, "Error updating balance")
 	}
 
-	resp := response.NewWalletTransferResponse(createdTransactions)
+	resp := response2.NewWalletTransferResponse(createdTransactions)
 
-	response.WriteJSONResponse(ctx, http.StatusOK, "", resp, "Balance updated successfully")
+	web.WriteJSONResponse(ctx, http.StatusOK, "", resp, "Balance updated successfully")
 }

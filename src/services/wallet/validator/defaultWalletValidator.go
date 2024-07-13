@@ -3,7 +3,7 @@ package validator
 import (
 	"context"
 	"finance-service/models"
-	walletservices "finance-service/services/wallet/read"
+	walletservices "finance-service/services/wallet"
 	"github.com/pkg/errors"
 )
 

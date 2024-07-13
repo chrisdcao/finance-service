@@ -1,15 +1,15 @@
 package dto
 
 import (
-	"finance-service/services/balance/enums"
+	"finance-service/services/wallet/enums"
 	"fmt"
 )
 
 type UpdateBalanceInput struct {
 	UserId           string
-	WalletType       string
-	DiffAmount       float64
+	WalletType       enums.WalletType
 	BalanceOperation enums.BalanceOperation
+	DiffAmount       float64
 	Content          string
 }
 

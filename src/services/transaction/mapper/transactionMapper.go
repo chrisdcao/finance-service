@@ -2,8 +2,8 @@ package mapper
 
 import (
 	"finance-service/models"
-	transactionDtos "finance-service/services/balance/dto"
 	"finance-service/services/transaction/dto"
+	transactionDtos "finance-service/services/wallet/dto"
 )
 
 type TransactionMapper struct {

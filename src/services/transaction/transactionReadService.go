@@ -1,10 +1,11 @@
 package transaction
 
 import (
+	dto2 "finance-service/controllers/transaction/dto/request"
 	"finance-service/repositories"
-	"finance-service/services/exception"
 	"finance-service/services/transaction/dto"
 	"finance-service/services/transaction/mapper"
+	"finance-service/utils/exception"
 	"github.com/pkg/errors"
 )
 
@@ -17,7 +18,7 @@ func NewTransactionReadService(repository *repositories.TransactionRepository) *
 	return &TransactionReadService{TransactionRepository: repository}
 }
 
-func (this *TransactionReadService) GetTransactions(params dto.GetTransactionsRequest) ([]dto.TransactionDto, error) {
+func (this *TransactionReadService) GetTransactions(params dto2.GetTransactionsRequest) ([]dto.TransactionDto, error) {
 	foundTransactions, err := this.TransactionRepository.FindTransactions(
 		params.WalletType,
 		params.ActionType,
