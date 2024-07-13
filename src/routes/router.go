@@ -1,6 +1,7 @@
-package app
+package routes
 
 import (
+	"finance-service/configs"
 	"finance-service/utils/log"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -13,7 +14,7 @@ func SetupRouter() *gin.Engine {
 	router.Use(log.TraceIDMiddleware(logger))
 
 	// Setup DI container
-	container := NewContainer()
+	container := configs.NewContainer()
 
 	// Swagger endpoint
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

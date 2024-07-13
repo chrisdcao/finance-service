@@ -2,7 +2,7 @@ package write
 
 import (
 	"context"
-	txManagement "finance-service/config/transaction"
+	txManagement "finance-service/configs/transaction"
 	walletDtos "finance-service/controllers/dto/request"
 	"finance-service/models"
 	"finance-service/repositories"

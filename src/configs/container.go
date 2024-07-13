@@ -1,7 +1,6 @@
-package app
+package configs
 
 import (
-	"finance-service/config"
 	"finance-service/controllers"
 	"finance-service/repositories"
 	"finance-service/services/balance/factory"
@@ -21,13 +20,13 @@ type Container struct {
 
 func NewContainer() *Container {
 	// Initialize services
-	transactionRepository := repositories.NewTransactionRepository(config.DB)
+	transactionRepository := repositories.NewTransactionRepository(DB)
 	transactionReadService := transaction2.NewTransactionReadService(transactionRepository)
 	transactionWriteService := transaction2.NewTransactionWriteService(transactionRepository)
 	transactionMapper := mapper.NewTransactionMapper()
 
 	// Initialize Repos
-	walletRepository := repositories.NewWalletRepository(config.DB)
+	walletRepository := repositories.NewWalletRepository(DB)
 	balanceHandlerFactory := factory.NewBalanceHandlerFactory(walletRepository)
 
 	walletIdParser := parser.NewWalletIdParser()

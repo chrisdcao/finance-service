@@ -1,8 +1,9 @@
 package main
 
 import (
-	"finance-service/app"
+	"finance-service/configs"
 	_ "finance-service/docs" // Import for documents to be made
+	"finance-service/routes"
 )
 
 // @title Finance Service API
@@ -22,20 +23,20 @@ import (
 
 func main() {
 	// Load environment variables
-	app.LoadEnv()
+	configs.LoadEnv()
 
 	// Initialize the database
-	app.InitDatabase()
+	configs.InitDatabase()
 
 	// Auto migrate the models
-	app.AutoMigrateModels()
+	configs.AutoMigrateModels()
 
 	// Set up routes
-	router := app.SetupRouter()
+	router := routes.SetupRouter()
 
 	// Start HTTP server
-	httpServer := app.StartHTTPServer(router)
+	httpServer := configs.StartHTTPServer(router)
 
 	// Graceful shutdown
-	app.GracefulShutdown(httpServer)
+	configs.GracefulShutdown(httpServer)
 }
