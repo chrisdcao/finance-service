@@ -3,6 +3,8 @@ package write
 import (
 	"context"
 	txManagement "finance-service/config/transaction"
+	walletDtos "finance-service/controllers/dto/request"
+	"finance-service/models"
 	"finance-service/repositories"
 	balanceDtos "finance-service/services/balance/dto"
 	balanceHandlerFactory "finance-service/services/balance/factory"
@@ -10,7 +12,6 @@ import (
 	"finance-service/services/transaction"
 	"finance-service/services/transaction/dto"
 	"finance-service/services/transaction/mapper"
-	walletDtos "finance-service/services/wallet/dto/request"
 	"finance-service/services/wallet/parser"
 	"finance-service/services/wallet/validator"
 	"finance-service/utils/log"
@@ -51,7 +52,7 @@ func NewWalletWriteService(
 }
 
 func (this *DefaultWalletWriteService) UpdateBalance(ctx context.Context, tx *gorm.DB, updateRequest walletDtos.WalletUpdateRequest) (*dto.TransactionDto, error) {
-	var transactionDto *dto.TransactionDto
+	var transDto *dto.TransactionDto
 
 	updateInput, err := this.BalanceMapper.FromUpdateRequestToInput(updateRequest)
 	if err != nil {
@@ -59,30 +60,33 @@ func (this *DefaultWalletWriteService) UpdateBalance(ctx context.Context, tx *go
 	}
 
 	err = txManagement.WithTransaction(this.WalletRepository.DB, tx, func(localTx *gorm.DB) error {
-		err = this.updateWalletBalance(ctx, localTx, *updateInput)
+		wallet, err := this.updateWalletBalance(ctx, localTx, *updateInput)
 		if err != nil {
 			return errors.Wrap(err, "failed to update wallet balance")
 		}
 
-		transactionDto = this.TransactionMapper.FromUpdateBalanceInputToDto(*updateInput)
+		trans := this.TransactionMapper.FromInputAndWalletToTx(*updateInput, *wallet)
 
-		if transactionDto, err = this.TransactionWriteService.CreateTransaction(localTx, *transactionDto); err != nil {
-			return errors.Wrap(err, "failed to create transaction")
+		if transDto, err = this.TransactionWriteService.CreateTransaction(localTx, *trans); err != nil {
+			return errors.Wrap(err, "failed to create trans")
 		}
 
 		return nil
 	})
-
-	return transactionDto, errors.Wrap(err, "failed to update wallet balance")
+	return transDto, errors.Wrap(err, "failed to update wallet balance")
 }
 
-func (this *DefaultWalletWriteService) updateWalletBalance(ctx context.Context, tx *gorm.DB, updateInput balanceDtos.UpdateBalanceInput) error {
+func (this *DefaultWalletWriteService) updateWalletBalance(ctx context.Context, tx *gorm.DB, updateInput balanceDtos.UpdateBalanceInput) (*models.Wallet, error) {
 	balanceHandler, err := this.BalanceHandlerFactory.GetHandler(updateInput)
 	if err != nil {
-		return errors.Wrap(err, "failed to get balance handler")
+		return nil, errors.Wrap(err, "failed to get balance handler")
 	}
 
-	err = balanceHandler.UpdateBalance(ctx, tx, updateInput)
+	wallet, err := balanceHandler.UpdateBalance(ctx, tx, updateInput)
 
-	return errors.Wrap(err, "failed to update wallet balance")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update wallet balance")
+	}
+
+	return wallet, nil
 }

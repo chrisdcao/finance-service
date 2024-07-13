@@ -1,38 +1,31 @@
 package enums
 
-import (
-	"github.com/pkg/errors"
-)
+import "github.com/pkg/errors"
 
+// BalanceOperation represents different balance operations
 type BalanceOperation int
 
 const (
-	ASMWalletDebit BalanceOperation = iota
-	ASMWalletTopup
-	VNDWalletDebit
-	VNDWalletTopup
+	Credit BalanceOperation = iota
+	Debit
 )
 
-var topupTypeToString = map[BalanceOperation]string{
-	ASMWalletDebit: "ASM Wallet Debit",
-	ASMWalletTopup: "ASM Wallet Topup",
-	VNDWalletDebit: "VND Wallet Debit",
-	VNDWalletTopup: "VND Wallet Topup",
+var balanceOperationToString = map[BalanceOperation]string{
+	Credit: "Credit",
+	Debit:  "Debit",
 }
 
-var stringToTopupType = map[string]BalanceOperation{
-	"ASM Wallet Debit": ASMWalletDebit,
-	"ASM Wallet Topup": ASMWalletTopup,
-	"VND Wallet Debit": VNDWalletDebit,
-	"VND Wallet Topup": VNDWalletTopup,
+var stringToBalanceOperation = map[string]BalanceOperation{
+	"Credit": Credit,
+	"Debit":  Debit,
 }
 
 func (this BalanceOperation) String() string {
-	return topupTypeToString[this]
+	return balanceOperationToString[this]
 }
 
-func ParseTopupType(str string) (BalanceOperation, error) {
-	t, ok := stringToTopupType[str]
+func Parse(str string) (BalanceOperation, error) {
+	t, ok := stringToBalanceOperation[str]
 	if !ok {
 		return 0, errors.New("invalid topup type: " + str)
 	}

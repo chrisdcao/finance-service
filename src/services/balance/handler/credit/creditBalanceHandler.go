@@ -2,10 +2,12 @@ package credit
 
 import (
 	"context"
+	"finance-service/models"
 	"finance-service/repositories"
 	transactionDtos "finance-service/services/balance/dto"
 	"finance-service/services/balance/handler"
-	walletservices "finance-service/services/wallet"
+	walletservices "finance-service/services/wallet/mapper"
+	"fmt"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
@@ -19,11 +21,19 @@ func NewCreditTransaction(repo *repositories.WalletRepository, walletMapper *wal
 	return &CreditBalanceHandler{Repo: repo, WalletMapper: walletMapper}
 }
 
-func (this *CreditBalanceHandler) UpdateBalance(ctx context.Context, tx *gorm.DB, input transactionDtos.UpdateBalanceInput) error {
-	wallet, err := this.WalletMapper.FromUpdateBalanceInputToWalletModel(input)
-	err = this.Repo.UpdateBalance(tx, wallet)
+func (this *CreditBalanceHandler) UpdateBalance(ctx context.Context, tx *gorm.DB, input transactionDtos.UpdateBalanceInput) (*models.Wallet, error) {
+	wallet, err := this.Repo.GetByUserIDAndWalletType(tx, input.UserId, input.WalletType)
 	if err != nil {
-		return errors.Wrap(err, "Failed to update wallet balance"+input.ToString())
+		errMsg := fmt.Sprintf("Error retrieving walletId %d", wallet.ID)
+		return nil, errors.Wrap(err, errMsg)
 	}
-	return nil
+
+	wallet.Balance = wallet.Balance + input.DiffAmount
+
+	updatedWallet, err := this.Repo.UpdateBalance(tx, *wallet)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to update wallet balance"+input.ToString())
+	}
+
+	return updatedWallet, nil
 }

@@ -14,12 +14,12 @@ func NewWalletRepository(db *gorm.DB) *WalletRepository {
 	return &WalletRepository{DB: db}
 }
 
-func (r *WalletRepository) UpdateBalance(tx *gorm.DB, wallet *models.Wallet) error {
-	err := tx.Model(&models.Wallet{}).Where("id = ?", walletID).Update("balance", newBalance).Error
+func (r *WalletRepository) UpdateBalance(tx *gorm.DB, wallet models.Wallet) (*models.Wallet, error) {
+	err := tx.Model(&wallet).Where("id = ?", wallet.ID).Update("balance", wallet.Balance).Error
 	if err != nil {
-		return errors.Wrap(err, "failed to update wallet balance")
+		return nil, errors.Wrap(err, "failed to update wallet balance")
 	}
-	return nil
+	return &wallet, nil
 }
 
 func (r *WalletRepository) GetByID(tx *gorm.DB, walletID uint) (*models.Wallet, error) {
@@ -33,6 +33,14 @@ func (r *WalletRepository) GetByID(tx *gorm.DB, walletID uint) (*models.Wallet, 
 func (r *WalletRepository) GetByUserID(tx *gorm.DB, userID uint) (*models.Wallet, error) {
 	var wallet models.Wallet
 	if err := tx.Where("user_id = ?", userID).First(&wallet).Error; err != nil {
+		return nil, errors.Wrap(err, "failed to get wallet")
+	}
+	return &wallet, nil
+}
+
+func (this *WalletRepository) GetByUserIDAndWalletType(tx *gorm.DB, userID string, walletType string) (*models.Wallet, error) {
+	var wallet models.Wallet
+	if err := tx.Where("user_id = ? AND wallet_type = ?", userID, walletType).First(&wallet).Error; err != nil {
 		return nil, errors.Wrap(err, "failed to get wallet")
 	}
 	return &wallet, nil

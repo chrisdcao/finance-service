@@ -15,8 +15,12 @@ func NewTransactionRepository(db *gorm.DB) *TransactionRepository {
 	return &TransactionRepository{DB: db}
 }
 
-func (r *TransactionRepository) Create(tx *gorm.DB, transaction *models.Transaction) error {
-	return errors.Wrap(tx.Create(transaction).Error, "failed to create transaction")
+func (r *TransactionRepository) Create(tx *gorm.DB, transaction models.Transaction) (*models.Transaction, error) {
+	err := tx.Create(&transaction).Error
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create transaction")
+	}
+	return &transaction, nil
 }
 
 func (r *TransactionRepository) FindTransactions(walletType, actionType string, amount float64, fromTime, toTime time.Time, uuid string) ([]models.Transaction, error) {

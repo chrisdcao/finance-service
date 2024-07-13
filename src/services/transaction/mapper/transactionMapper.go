@@ -15,7 +15,6 @@ func NewTransactionMapper() *TransactionMapper {
 
 func (this *TransactionMapper) FromDtoToModel(dto dto.TransactionDto) models.Transaction {
 	return models.Transaction{
-		WalletID:        dto.WalletID,
 		Amount:          dto.Amount,
 		TransactionType: dto.TransactionType,
 		Content:         dto.Content,
@@ -24,7 +23,6 @@ func (this *TransactionMapper) FromDtoToModel(dto dto.TransactionDto) models.Tra
 
 func (this *TransactionMapper) FromModelToDto(transaction models.Transaction) *dto.TransactionDto {
 	return &dto.TransactionDto{
-		WalletID:        transaction.WalletID,
 		Amount:          transaction.Amount,
 		TransactionType: transaction.TransactionType,
 		Content:         transaction.Content,
@@ -40,9 +38,9 @@ func (this *TransactionMapper) FromModelListToDtoList(transactions []models.Tran
 	return transactionDtos
 }
 
-func (this *TransactionMapper) FromUpdateBalanceInputToDto(updateInput transactionDtos.UpdateBalanceInput) *dto.TransactionDto {
-	return &dto.TransactionDto{
-		WalletID:        updateInput.WalletId,
+func (this *TransactionMapper) FromInputAndWalletToTx(updateInput transactionDtos.UpdateBalanceInput, wallet models.Wallet) *models.Transaction {
+	return &models.Transaction{
+		WalletID:        wallet.ID,
 		Amount:          updateInput.DiffAmount,
 		TransactionType: updateInput.BalanceOperation.String(),
 		Content:         updateInput.Content,

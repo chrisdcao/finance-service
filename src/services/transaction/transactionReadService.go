@@ -17,7 +17,7 @@ func NewTransactionReadService(repository *repositories.TransactionRepository) *
 	return &TransactionReadService{TransactionRepository: repository}
 }
 
-func (this *TransactionReadService) GetTransactions(params *dto.GetTransactionsRequest) ([]dto.TransactionDto, error) {
+func (this *TransactionReadService) GetTransactions(params dto.GetTransactionsRequest) ([]dto.TransactionDto, error) {
 	foundTransactions, err := this.TransactionRepository.FindTransactions(
 		params.WalletType,
 		params.ActionType,

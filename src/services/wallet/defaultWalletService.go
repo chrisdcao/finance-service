@@ -5,13 +5,13 @@ import (
 	"database/sql"
 	"finance-service/config"
 	txManagement "finance-service/config/transaction"
+	request2 "finance-service/controllers/dto/request"
 	operationTypes "finance-service/services/balance/enums"
 	balanceHandlerFactory "finance-service/services/balance/factory"
 	"finance-service/services/transaction"
+	"finance-service/services/transaction/dto"
 	"finance-service/services/transaction/mapper"
-	walletDtos "finance-service/services/wallet/dto"
-	"finance-service/services/wallet/dto/request"
-	response2 "finance-service/services/wallet/dto/response"
+	walletTypes "finance-service/services/wallet/enums"
 	"finance-service/services/wallet/read"
 	"finance-service/services/wallet/validator"
 	"finance-service/services/wallet/write"
@@ -46,35 +46,33 @@ func NewWalletService(
 	}
 }
 
-func (this *DefaultWalletService) UpdateBalance(ctx context.Context, tx *gorm.DB, updateRequest request.WalletUpdateRequest) (*response2.WalletUpdateResponse, error) {
+func (this *DefaultWalletService) UpdateBalance(ctx context.Context, tx *gorm.DB, updateRequest request2.WalletUpdateRequest) (*dto.TransactionDto, error) {
 	transactionDto, err := this.WalletWriteService.UpdateBalance(ctx, tx, updateRequest)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update wallet balance")
 	}
-	return response2.NewWalletUpdateResponse(*transactionDto), nil
+	return transactionDto, nil
 }
 
-func (this *DefaultWalletService) WalletTransfer(ctx context.Context, walletTransferRequest request.WalletTransferRequest) ([]walletDtos.WalletDto, error) {
-	amount, toExternalWalletId, fromExternalWalletId := walletTransferRequest.Amount, walletTransferRequest.ExternalToWalletId, walletTransferRequest.ExternalFromWalletId
-
-	err := this.WalletValidator.ValidateTransferAmount(ctx, amount)
+func (this *DefaultWalletService) WalletTransfer(ctx context.Context, transferRequest request2.WalletTransferRequest) ([]dto.TransactionDto, error) {
+	err := this.WalletValidator.ValidateTransferAmount(ctx, transferRequest.Amount)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to validate transfer amount")
 	}
 
 	// Begin new transaction with desired isolation level (REPEATABLE READ or SERIALIZABLE)
-	var updatedVndWallet, updatedAsmWallet *walletDtos.WalletDto
+	var tx1, tx2 *dto.TransactionDto
 	err = txManagement.WithNewTransaction(config.DB, sql.LevelRepeatableRead, func(tx *gorm.DB) error {
-		err = this.WalletValidator.ValidateWallets(ctx, tx, toExternalWalletId, fromExternalWalletId, amount)
 		if err != nil {
 			return errors.Wrap(err, "failed to validate wallets")
 		}
 
 		// Update `from` wallet (debit)
-		_, err = this.UpdateBalance(ctx, tx, request.WalletUpdateRequest{
-			UserId:     fromExternalWalletId,
-			UpdateType: operationTypes.VNDWalletDebit.String(),
-			Amount:     amount,
+		tx1, err = this.UpdateBalance(ctx, tx, request2.WalletUpdateRequest{
+			UserId:     transferRequest.UserId,
+			WalletType: walletTypes.VNDWallet.String(),
+			UpdateType: operationTypes.Debit.String(),
+			Amount:     transferRequest.Amount,
 			Content:    "Chuyen tien tu VND Wallet sang ASM Wallet",
 		})
 		if err != nil {
@@ -82,10 +80,11 @@ func (this *DefaultWalletService) WalletTransfer(ctx context.Context, walletTran
 		}
 
 		// Update `to` wallet (credit)
-		_, err = this.UpdateBalance(ctx, tx, request.WalletUpdateRequest{
-			UserId:     toExternalWalletId,
-			UpdateType: operationTypes.ASMWalletTopup.String(),
-			Amount:     amount,
+		tx2, err = this.UpdateBalance(ctx, tx, request2.WalletUpdateRequest{
+			UserId:     transferRequest.UserId,
+			WalletType: walletTypes.ASMWallet.String(),
+			UpdateType: operationTypes.Credit.String(),
+			Amount:     transferRequest.Amount,
 			Content:    "Nhan tien tu VND Wallet",
 		})
 		if err != nil {
@@ -100,5 +99,5 @@ func (this *DefaultWalletService) WalletTransfer(ctx context.Context, walletTran
 	}
 
 	// Return both wallets
-	return []walletDtos.WalletDto{*updatedVndWallet, *updatedAsmWallet}, nil
+	return []dto.TransactionDto{*tx1, *tx2}, nil
 }

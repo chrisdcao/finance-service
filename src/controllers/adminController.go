@@ -2,10 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
+	request2 "finance-service/controllers/dto/request"
 	"finance-service/controllers/dto/response"
 	walletservices "finance-service/services/wallet"
-	"finance-service/services/wallet/dto/request"
-	response2 "finance-service/services/wallet/dto/response"
 	"finance-service/utils/log"
 	logDto "finance-service/utils/log/dto"
 	"github.com/gin-gonic/gin"
@@ -38,13 +37,13 @@ func NewAdminController(walletService *walletservices.DefaultWalletService) *Adm
 // @Failure 400 {object} response.Response
 // @Router /wallets/update_balance [post]
 func (this *AdminController) Topup(ctx *gin.Context) {
-	var req request.WalletUpdateRequest
+	var req request2.WalletUpdateRequest
 
 	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
 		response.WriteJSONResponse(ctx, http.StatusBadRequest, err.Error(), nil, "Invalid request payload")
 	}
 
-	_, err := this.WalletService.UpdateBalance(ctx, nil, req)
+	transactionDto, err := this.WalletService.UpdateBalance(ctx, nil, req)
 
 	if err != nil {
 		this.Logger.Log(logDto.LogEntry{
@@ -61,12 +60,11 @@ func (this *AdminController) Topup(ctx *gin.Context) {
 		response.WriteJSONResponse(ctx, http.StatusInternalServerError, errors.WithStack(err).Error(), nil, "Error updating balance")
 	}
 
-	resp := response2.NewWalletUpdateResponse(walletDto)
+	resp := response.NewWalletUpdateResponse(*transactionDto)
 
-	response.WriteJSONResponse(ctx, http.StatusOK, "", walletDto, "Balance updated successfully")
+	response.WriteJSONResponse(ctx, http.StatusOK, "", resp, "Balance updated successfully")
 }
 
-// TODO: This return user ID and password diff with before? What the hell?
 // This should be returning 2 transaction within a transaction array?
 // WalletTransfer godoc
 // @Summary Convert wallet balance
@@ -79,12 +77,12 @@ func (this *AdminController) Topup(ctx *gin.Context) {
 // @Failure 400 {object} response.Response
 // @Router /wallets/convert_balance [post]
 func (this *AdminController) WalletTransfer(ctx *gin.Context) {
-	var req request.WalletTransferRequest
+	var req request2.WalletTransferRequest
 	if err := json.NewDecoder(ctx.Request.Body).Decode(&req); err != nil {
 		response.WriteJSONResponse(ctx, http.StatusBadRequest, err.Error(), nil, "Invalid request payload")
 	}
 
-	postTransferredWallets, err := this.WalletService.WalletTransfer(ctx, req)
+	createdTransactions, err := this.WalletService.WalletTransfer(ctx, req)
 	if err != nil {
 		this.Logger.Log(logDto.LogEntry{
 			Level:   logrus.ErrorLevel,
@@ -99,5 +97,7 @@ func (this *AdminController) WalletTransfer(ctx *gin.Context) {
 		response.WriteJSONResponse(ctx, http.StatusInternalServerError, errors.WithStack(err).Error(), nil, "Error updating balance")
 	}
 
-	response.WriteJSONResponse(ctx, http.StatusOK, "", postTransferredWallets, "Balance updated successfully")
+	resp := response.NewWalletTransferResponse(createdTransactions)
+
+	response.WriteJSONResponse(ctx, http.StatusOK, "", resp, "Balance updated successfully")
 }

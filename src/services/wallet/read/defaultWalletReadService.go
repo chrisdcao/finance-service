@@ -2,10 +2,9 @@ package read
 
 import (
 	"context"
-	"finance-service/models"
 	"finance-service/repositories"
-	walletservices "finance-service/services/wallet"
 	walletDtos "finance-service/services/wallet/dto"
+	walletservices "finance-service/services/wallet/mapper"
 	"finance-service/services/wallet/parser"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -25,7 +24,7 @@ func NewWalletReadService(repository *repositories.WalletRepository, idParser *p
 	}
 }
 
-func (this *DefaultWalletReadService) GetFromExternalId(ctx context.Context, externalWalletId string, tx *gorm.DB) (*models.Wallet, error) {
+func (this *DefaultWalletReadService) GetFromExternalId(ctx context.Context, externalWalletId string, tx *gorm.DB) (*walletDtos.WalletDto, error) {
 	walletId, err := this.WalletIdParser.ParseFromEncryption(ctx, externalWalletId)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse wallet id")
@@ -36,7 +35,7 @@ func (this *DefaultWalletReadService) GetFromExternalId(ctx context.Context, ext
 		return nil, errors.Wrap(err, "failed to get wallet")
 	}
 
-	return wallet, nil
+	return this.WalletMapper.FromModelToDto(*wallet), nil
 }
 
 func (this *DefaultWalletReadService) GetWalletByUserId(ctx context.Context, tx *gorm.DB, userId uint) (*walletDtos.WalletDto, error) {
@@ -45,9 +44,7 @@ func (this *DefaultWalletReadService) GetWalletByUserId(ctx context.Context, tx 
 		return nil, errors.Wrap(err, "failed to get wallet")
 	}
 
-	walletDto := this.WalletMapper.FromModelToDto(*wallet)
-
-	return walletDto, nil
+	return this.WalletMapper.FromModelToDto(*wallet), nil
 }
 
 func (this *DefaultWalletReadService) GetWalletById(ctx context.Context, tx *gorm.DB, walletId uint) (*walletDtos.WalletDto, error) {
@@ -56,7 +53,5 @@ func (this *DefaultWalletReadService) GetWalletById(ctx context.Context, tx *gor
 		return nil, errors.Wrap(err, "failed to get wallet")
 	}
 
-	walletDto := this.WalletMapper.FromModelToDto(*wallet)
-
-	return walletDto, nil
+	return this.WalletMapper.FromModelToDto(*wallet), nil
 }

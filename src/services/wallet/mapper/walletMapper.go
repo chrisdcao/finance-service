@@ -1,8 +1,7 @@
-package services
+package mapper
 
 import (
 	"finance-service/models"
-	transactionDtos "finance-service/services/balance/dto"
 	walletDtos "finance-service/services/wallet/dto"
 )
 
@@ -22,8 +21,4 @@ func (this *WalletMapper) FromModelToDto(wallet models.Wallet) *walletDtos.Walle
 		UserId:     wallet.UserId,
 		WalletType: wallet.WalletType,
 	}
-}
-
-func (this *WalletMapper) FromUpdateBalanceInputToWalletModel(input transactionDtos.UpdateBalanceInput) (*models.Wallet, error) {
-	return nil, nil
 }
