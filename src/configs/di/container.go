@@ -1,13 +1,14 @@
-package configs
+package di
 
 import (
+	"finance-service/configs/db/connection"
 	"finance-service/controllers"
 	"finance-service/repositories"
 	transaction2 "finance-service/services/transaction"
 	"finance-service/services/transaction/mapper"
 	walletservices "finance-service/services/wallet"
 	"finance-service/services/wallet/factory"
-	"finance-service/services/wallet/parser"
+	mapper2 "finance-service/services/wallet/mapper"
 	"finance-service/services/wallet/validator"
 )
 
@@ -18,27 +19,24 @@ type Container struct {
 
 func NewContainer() *Container {
 	// Initialize services
-	transactionRepository := repositories.NewTransactionRepository(DB)
+	transactionRepository := repositories.NewTransactionRepository(connection.DB)
 	transactionReadService := transaction2.NewTransactionReadService(transactionRepository)
 	transactionWriteService := transaction2.NewTransactionWriteService(transactionRepository)
 	transactionMapper := mapper.NewTransactionMapper()
 
 	// Initialize Repos
-	walletRepository := repositories.NewWalletRepository(DB)
-	balanceHandlerFactory := factory.NewBalanceHandlerFactory(walletRepository)
+	walletRepository := repositories.NewWalletRepository(connection.DB)
 
-	walletIdParser := parser.NewWalletIdParser()
-	walletReadService := walletservices.NewWalletReadService(walletRepository, walletIdParser)
-	walletValidator := validator.NewWalletValidator(walletReadService)
+	// init mapper
+	balanceMapper := mapper2.NewBalanceMapper()
+	walletMapper := mapper2.NewWalletMapper()
 
-	walletWriteService := walletservices.NewWalletWriteService(
-		balanceHandlerFactory,
-		walletRepository,
-		transactionWriteService,
-		transactionMapper,
-		walletValidator,
-		walletIdParser,
-	)
+	// init services
+	walletReadService := walletservices.NewWalletReadService(walletRepository, walletMapper)
+	walletValidator := validator.NewWalletValidator()
+	balanceHandlerFactory := factory.NewBalanceHandlerFactory(walletRepository, walletValidator, walletMapper)
+
+	walletWriteService := walletservices.NewWalletWriteService(balanceHandlerFactory, walletRepository, transactionWriteService, transactionMapper, balanceMapper, walletValidator)
 
 	walletService := walletservices.NewWalletService(
 		balanceHandlerFactory,

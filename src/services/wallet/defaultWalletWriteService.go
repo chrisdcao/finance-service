@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	txManagement "finance-service/configs/transaction"
+	txManagement "finance-service/configs/db/transaction"
 	walletDtos "finance-service/controllers/wallet/dto/request"
 	"finance-service/models"
 	"finance-service/repositories"
@@ -12,7 +12,6 @@ import (
 	balanceDtos "finance-service/services/wallet/dto"
 	balanceHandlerFactory "finance-service/services/wallet/factory"
 	mapper2 "finance-service/services/wallet/mapper"
-	"finance-service/services/wallet/parser"
 	"finance-service/services/wallet/validator"
 	"finance-service/utils/log"
 	"github.com/pkg/errors"
@@ -26,26 +25,16 @@ type DefaultWalletWriteService struct {
 	TransactionMapper       *mapper.TransactionMapper
 	BalanceMapper           *mapper2.BalanceMapper
 	WalletValidator         *validator.DefaultWalletValidator
-	WalletIdParser          *parser.WalletIdParser
 	Logger                  *log.CommonLogger
 }
 
-func NewWalletWriteService(
-	balanceHandlerFactory *balanceHandlerFactory.BalanceHandlerFactory,
-	walletRepository *repositories.WalletRepository,
-	transactionWriteService *transaction.TransactionWriteService,
-	transactionMapper *mapper.TransactionMapper,
-	balanceMapper *mapper2.BalanceMapper,
-	walletValidator *validator.DefaultWalletValidator,
-	walletIdParser *parser.WalletIdParser,
-) *DefaultWalletWriteService {
+func NewWalletWriteService(balanceHandlerFactory *balanceHandlerFactory.BalanceHandlerFactory, walletRepository *repositories.WalletRepository, transactionWriteService *transaction.TransactionWriteService, transactionMapper *mapper.TransactionMapper, balanceMapper *mapper2.BalanceMapper, walletValidator *validator.DefaultWalletValidator) *DefaultWalletWriteService {
 	return &DefaultWalletWriteService{
 		BalanceHandlerFactory:   balanceHandlerFactory,
 		WalletRepository:        walletRepository,
 		TransactionWriteService: transactionWriteService,
 		TransactionMapper:       transactionMapper,
 		WalletValidator:         walletValidator,
-		WalletIdParser:          walletIdParser,
 		Logger:                  log.NewCommonLogger(),
 		BalanceMapper:           balanceMapper,
 	}

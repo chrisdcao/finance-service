@@ -2,6 +2,7 @@ package configs
 
 import (
 	"context"
+	"finance-service/configs/db/connection"
 	"finance-service/models"
 	log2 "finance-service/utils/log"
 	"github.com/gin-gonic/gin"
@@ -74,9 +75,9 @@ func LoadEnvWithoutLogs() {
 }
 
 func InitDatabaseWithoutLogs() {
-	InitDB()
+	connection.InitDB()
 }
 
 func AutoMigrateModelsWithoutLogs() {
-	DB.AutoMigrate(&models.Wallet{}, &models.Transaction{})
+	connection.DB.AutoMigrate(&models.Wallet{}, &models.Transaction{})
 }

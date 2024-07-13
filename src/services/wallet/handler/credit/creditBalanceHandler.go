@@ -17,7 +17,7 @@ type CreditBalanceHandler struct {
 	WalletMapper *walletservices.WalletMapper
 }
 
-func NewCreditTransaction(repo *repositories.WalletRepository, walletMapper *walletservices.WalletMapper) handler.BalanceHandler {
+func NewCreditBalanceHandler(repo *repositories.WalletRepository, walletMapper *walletservices.WalletMapper) handler.BalanceHandler {
 	return &CreditBalanceHandler{Repo: repo, WalletMapper: walletMapper}
 }
 

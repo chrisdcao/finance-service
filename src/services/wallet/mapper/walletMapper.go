@@ -7,6 +7,10 @@ import (
 
 type WalletMapper struct{}
 
+func NewWalletMapper() *WalletMapper {
+	return &WalletMapper{}
+}
+
 func (this *WalletMapper) FromDtoToModel(dto walletDtos.WalletDto) *models.Wallet {
 	return &models.Wallet{
 		Balance:    dto.Balance,

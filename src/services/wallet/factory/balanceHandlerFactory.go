@@ -2,12 +2,14 @@ package factory
 
 import (
 	"finance-service/repositories"
-	balanceTypes "finance-service/services/balance/enums"
 	transactionDtos "finance-service/services/wallet/dto"
 	"finance-service/services/wallet/enums"
+	balanceTypes "finance-service/services/wallet/enums"
 	"finance-service/services/wallet/handler"
 	"finance-service/services/wallet/handler/credit"
 	"finance-service/services/wallet/handler/debit"
+	walletservices "finance-service/services/wallet/mapper"
+	"finance-service/services/wallet/validator"
 	"github.com/pkg/errors"
 )
 
@@ -16,23 +18,18 @@ type BalanceHandlerFactory struct {
 }
 
 // NewBalanceHandlerFactory returns a new instance of BalanceHandlerFactory with ds: <balanceType, handler>
-func NewBalanceHandlerFactory(walletRepo *repositories.WalletRepository) *BalanceHandlerFactory {
+func NewBalanceHandlerFactory(walletRepo *repositories.WalletRepository, walletValidator *validator.DefaultWalletValidator, walletMapper *walletservices.WalletMapper) *BalanceHandlerFactory {
 	factory := &BalanceHandlerFactory{
 		handlers: make(map[enums.BalanceOperation]handler.BalanceHandler),
 	}
 
 	// Initialize handlers
-	// TODO: Ask Huys and add concrete impl of missing handlers
-	asmWalletDebitHandler := debit.NewDebitTransaction(walletRepo)
-	asmWalletTopupHandler := credit.NewCreditTransaction(walletRepo)
-	vndWalletDebitHandler := debit.NewDebitTransaction(walletRepo)
-	vndWalletTopupHandler := credit.NewCreditTransaction(walletRepo)
+	creditHandler := credit.NewCreditBalanceHandler(walletRepo, walletMapper)
+	debitHandler := debit.NewDebitBalanceHandler(walletRepo, walletMapper, walletValidator)
 
 	// Register handlers
-	factory.RegisterHandler(balanceTypes.ASMWalletDebit, asmWalletDebitHandler)
-	factory.RegisterHandler(balanceTypes.ASMWalletTopup, asmWalletTopupHandler)
-	factory.RegisterHandler(balanceTypes.VNDWalletDebit, vndWalletDebitHandler)
-	factory.RegisterHandler(balanceTypes.VNDWalletTopup, vndWalletTopupHandler)
+	factory.RegisterHandler(balanceTypes.Credit, debitHandler)
+	factory.RegisterHandler(balanceTypes.Debit, creditHandler)
 
 	return factory
 }

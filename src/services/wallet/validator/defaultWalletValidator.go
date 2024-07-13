@@ -3,18 +3,13 @@ package validator
 import (
 	"context"
 	"finance-service/models"
-	walletservices "finance-service/services/wallet"
 	"github.com/pkg/errors"
 )
 
-type DefaultWalletValidator struct {
-	WalletReadService *walletservices.DefaultWalletReadService
-}
+type DefaultWalletValidator struct{}
 
-func NewWalletValidator(defaultWalletReadService *walletservices.DefaultWalletReadService) *DefaultWalletValidator {
-	return &DefaultWalletValidator{
-		WalletReadService: defaultWalletReadService,
-	}
+func NewWalletValidator() *DefaultWalletValidator {
+	return &DefaultWalletValidator{}
 }
 
 func (this *DefaultWalletValidator) ValidateTransferAmount(ctx context.Context, amount float64) error {

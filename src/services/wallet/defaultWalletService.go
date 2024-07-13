@@ -3,8 +3,7 @@ package services
 import (
 	"context"
 	"database/sql"
-	"finance-service/configs"
-	txManagement "finance-service/configs/transaction"
+	txManagement "finance-service/configs/db/transaction"
 	"finance-service/controllers/wallet/dto/request"
 	"finance-service/services/transaction"
 	"finance-service/services/transaction/dto"
@@ -59,7 +58,7 @@ func (this *DefaultWalletService) WalletTransfer(ctx context.Context, transferRe
 
 	// Begin new transaction with desired isolation level (REPEATABLE READ or SERIALIZABLE)
 	var tx1, tx2 *dto.TransactionDto
-	err = txManagement.WithNewTransaction(configs.DB, sql.LevelRepeatableRead, func(tx *gorm.DB) error {
+	err = txManagement.WithNewTransaction(this.WalletWriteService.WalletRepository.DB, sql.LevelRepeatableRead, func(tx *gorm.DB) error {
 		if err != nil {
 			return errors.Wrap(err, "failed to validate wallets")
 		}

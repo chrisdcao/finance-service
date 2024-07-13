@@ -19,7 +19,7 @@ type DebitBalanceHandler struct {
 	WalletMapper    *walletservices.WalletMapper
 }
 
-func NewDebitTransaction(repo *repositories.WalletRepository, mapper *walletservices.WalletMapper, validator *validator.DefaultWalletValidator) handler.BalanceHandler {
+func NewDebitBalanceHandler(repo *repositories.WalletRepository, mapper *walletservices.WalletMapper, validator *validator.DefaultWalletValidator) handler.BalanceHandler {
 	return &DebitBalanceHandler{Repo: repo, WalletMapper: mapper, WalletValidator: validator}
 }
 
