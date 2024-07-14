@@ -40,7 +40,7 @@ func (this *TransactionMapper) FromModelListToDtoList(transactions []models.Tran
 
 func (this *TransactionMapper) FromInputAndWalletToTx(updateInput transactionDtos.UpdateBalanceInput, wallet models.Wallet) *models.Transaction {
 	return &models.Transaction{
-		WalletID:        wallet.ID,
+		WalletId:        wallet.Id,
 		Amount:          updateInput.DiffAmount,
 		TransactionType: updateInput.BalanceOperation.String(),
 		Content:         updateInput.Content,

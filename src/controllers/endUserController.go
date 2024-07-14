@@ -64,7 +64,7 @@ func (this *EndUserController) GetTransactions(ctx *gin.Context) {
 	if err != nil {
 		this.Logger.Log(dto.LogEntry{
 			Level:   logrus.ErrorLevel,
-			TraceID: traceId,
+			TraceId: traceId,
 			Event:   "getting_transactions",
 			Message: "Error getting transactionDtos",
 			Context: map[string]interface{}{

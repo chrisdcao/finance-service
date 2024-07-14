@@ -28,8 +28,8 @@ func NewBalanceHandlerFactory(walletRepo *repositories.WalletRepository, walletV
 	debitHandler := debit.NewDebitBalanceHandler(walletRepo, walletMapper, walletValidator)
 
 	// Register handlers
-	factory.RegisterHandler(balanceTypes.Credit, debitHandler)
-	factory.RegisterHandler(balanceTypes.Debit, creditHandler)
+	factory.RegisterHandler(balanceTypes.Credit, creditHandler)
+	factory.RegisterHandler(balanceTypes.Debit, debitHandler)
 
 	return factory
 }

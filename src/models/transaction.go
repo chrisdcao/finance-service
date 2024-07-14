@@ -5,16 +5,16 @@ import (
 )
 
 type Transaction struct {
-	// DB-gen fields
-	ID uint `gorm:"primaryKey"`
-	// Data fields
-	WalletID        uint    `gorm:"wallet_id"`
-	Amount          float64 `gorm:"amount"`
-	TransactionType string  `gorm:"transaction_type"` // credit or debit
-	Content         string  `gorm:"content"`
-	// Audit fields
-	CreatedOn time.Time `gorm:"created_on"`
-	UpdatedOn time.Time `gorm:"updated_on"`
-	CreatedBy string    `gorm:"created_by"`
-	UpdatedBy string    `gorm:"updated_by"`
+	// autogen fields
+	Id uint `gorm:"primaryKey"`
+	// content fields
+	WalletId        uint
+	Amount          float64
+	TransactionType string
+	Content         string
+	// audit fields
+	CreatedOn time.Time `gorm:"autoCreateTime"`
+	UpdatedOn time.Time `gorm:"autoUpdateTime"`
+	CreatedBy string
+	UpdatedBy string
 }

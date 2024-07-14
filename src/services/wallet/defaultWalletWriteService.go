@@ -62,7 +62,12 @@ func (this *DefaultWalletWriteService) UpdateBalance(ctx context.Context, tx *go
 
 		return nil
 	})
-	return transDto, errors.Wrap(err, "failed to update wallet balance")
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update wallet balance")
+	}
+
+	return transDto, nil
 }
 
 func (this *DefaultWalletWriteService) updateWalletBalance(ctx context.Context, tx *gorm.DB, updateInput balanceDtos.UpdateBalanceInput) (*models.Wallet, error) {

@@ -24,7 +24,7 @@ func NewCreditBalanceHandler(repo *repositories.WalletRepository, walletMapper *
 func (this *CreditBalanceHandler) UpdateBalance(ctx context.Context, tx *gorm.DB, input transactionDtos.UpdateBalanceInput) (*models.Wallet, error) {
 	wallet, err := this.Repo.GetByUserIDAndWalletType(tx, input.UserId, input.WalletType.String())
 	if err != nil {
-		errMsg := fmt.Sprintf("Error retrieving walletId %d", wallet.ID)
+		errMsg := fmt.Sprintf("Error retrieving wallet with UserId: %s, WalletType: %s", input.UserId, input.WalletType.String())
 		return nil, errors.Wrap(err, errMsg)
 	}
 

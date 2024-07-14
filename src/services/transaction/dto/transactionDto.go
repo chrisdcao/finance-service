@@ -5,7 +5,7 @@ import (
 )
 
 type TransactionDto struct {
-	//WalletID        uint      `json:"wallet_id"`
+	//WalletId        uint      `json:"wallet_id"`
 	Amount          float64   `json:"amount"`
 	TransactionType string    `json:"type"` // credit or debit
 	Content         string    `json:"content"`

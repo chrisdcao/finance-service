@@ -21,11 +21,11 @@ func SetupRouter() *gin.Engine {
 
 	// Define transaction routes
 	// TODO: based on the standard of REST APIs (using same endpoint, only with different methods for different operations)
-	router.GET("/transactions/get", container.EndUserController.GetTransactions)
+	router.GET("/enduser/transactions", container.EndUserController.GetTransactions)
 
 	// Define wallet routes
-	router.POST("/wallets/updateBalance", container.AdminController.Topup)
-	router.POST("/wallets/convertBalance", container.AdminController.WalletTransfer)
+	router.POST("/admin/topup", container.AdminController.Topup)
+	router.POST("/admin/transfer", container.AdminController.WalletTransfer)
 
 	return router
 }

@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"finance-service/models"
+	"fmt"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
@@ -15,7 +16,7 @@ func NewWalletRepository(db *gorm.DB) *WalletRepository {
 }
 
 func (r *WalletRepository) UpdateBalance(tx *gorm.DB, wallet models.Wallet) (*models.Wallet, error) {
-	err := tx.Model(&wallet).Where("id = ?", wallet.ID).Update("balance", wallet.Balance).Error
+	err := tx.Model(&wallet).Where("id = ?", wallet.Id).Update("balance", wallet.Balance).Error
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update wallet balance")
 	}
@@ -41,7 +42,8 @@ func (r *WalletRepository) GetByUserID(tx *gorm.DB, userID uint) (*models.Wallet
 func (this *WalletRepository) GetByUserIDAndWalletType(tx *gorm.DB, userID string, walletType string) (*models.Wallet, error) {
 	var wallet models.Wallet
 	if err := tx.Where("user_id = ? AND wallet_type = ?", userID, walletType).First(&wallet).Error; err != nil {
-		return nil, errors.Wrap(err, "failed to get wallet")
+		errMsg := fmt.Sprintf("failed to get wallet with [user_id: %s] and [wallet_type: %s]", userID, walletType)
+		return nil, errors.Wrap(err, errMsg)
 	}
 	return &wallet, nil
 }

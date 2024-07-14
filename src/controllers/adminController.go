@@ -49,15 +49,15 @@ func (this *AdminController) Topup(ctx *gin.Context) {
 	if err != nil {
 		this.Logger.Log(logDto.LogEntry{
 			Level:   logrus.ErrorLevel,
-			TraceID: log2.GetTraceIDFromGinContextOrUnknown(ctx),
+			TraceId: log2.GetTraceIDFromGinContextOrUnknown(ctx),
 			Event:   "process_request",
 			Message: "Request processing failed",
 			Context: map[string]interface{}{
-				"error": errors.WithStack(err),
+				"request": req,
 			},
+			StackTrace: errors.WithStack(err),
 		})
 
-		// TODO: Do we need a custom error code here? Discuss with Duc Huy
 		web.WriteJSONResponse(ctx, http.StatusInternalServerError, errors.WithStack(err).Error(), nil, "Error updating balance")
 	}
 
@@ -87,12 +87,13 @@ func (this *AdminController) WalletTransfer(ctx *gin.Context) {
 	if err != nil {
 		this.Logger.Log(logDto.LogEntry{
 			Level:   logrus.ErrorLevel,
-			TraceID: log2.GetTraceIDFromGinContextOrUnknown(ctx),
+			TraceId: log2.GetTraceIDFromGinContextOrUnknown(ctx),
 			Event:   "process_request",
 			Message: "Request processing failed",
 			Context: map[string]interface{}{
-				"error": errors.WithStack(err),
+				"request": req,
 			},
+			StackTrace: errors.WithStack(err),
 		})
 
 		web.WriteJSONResponse(ctx, http.StatusInternalServerError, errors.WithStack(err).Error(), nil, "Error updating balance")

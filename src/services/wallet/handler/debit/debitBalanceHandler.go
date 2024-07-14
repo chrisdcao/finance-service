@@ -26,13 +26,13 @@ func NewDebitBalanceHandler(repo *repositories.WalletRepository, mapper *wallets
 func (this *DebitBalanceHandler) UpdateBalance(ctx context.Context, tx *gorm.DB, input transactionDtos.UpdateBalanceInput) (*models.Wallet, error) {
 	wallet, err := this.Repo.GetByUserIDAndWalletType(tx, input.UserId, input.WalletType.String())
 	if err != nil {
-		errMsg := fmt.Sprintf("Error retrieving walletId %d", wallet.ID)
+		errMsg := fmt.Sprintf("Error retrieving wallet with UserId: %s, WalletType: %s", input.UserId, input.WalletType.String())
 		return nil, errors.Wrap(err, errMsg)
 	}
 
 	isSufficientFund := this.WalletValidator.ValidateDebitWallet(*wallet, input.DiffAmount)
 	if !isSufficientFund {
-		errMsg := fmt.Sprintf("Current walletId %d has insufficient fund for amount: %f", wallet.ID, input.DiffAmount)
+		errMsg := fmt.Sprintf("Current walletId %d has insufficient fund for amount: %f", wallet.Id, input.DiffAmount)
 		return nil, errors.Wrap(err, errMsg)
 	}
 

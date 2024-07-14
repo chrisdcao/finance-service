@@ -39,7 +39,7 @@ func ExtractTraceIDFromContextOrUnknown(ctx context.Context) string {
 	return traceID
 }
 
-// GetTraceIDFromContext extracts the trace ID from the gin.Context.
+// GetTraceIDFromContext extracts the trace Id from the gin.Context.
 func GetTraceIDFromGinContextOrUnknown(c *gin.Context) string {
 	if traceID, exists := c.Get(string(TraceIDKey)); exists {
 		if strTraceID, ok := traceID.(string); ok {
@@ -54,10 +54,10 @@ func getFunctionName(i interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 }
 
-// TraceIDMiddleware adds a trace ID to the context and logs the request start and end
+// TraceIDMiddleware adds a trace Id to the context and logs the request start and end
 func TraceIDMiddleware(logger *CommonLogger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		traceID := c.GetHeader("X-Trace-ID")
+		traceID := c.GetHeader("X-Trace-Id")
 		if traceID == "" {
 			traceID = uuid.New().String()
 		}
@@ -68,7 +68,7 @@ func TraceIDMiddleware(logger *CommonLogger) gin.HandlerFunc {
 		start := time.Now()
 		logger.Log(dto.LogEntry{
 			Level:   logrus.InfoLevel,
-			TraceID: traceID,
+			TraceId: traceID,
 			Event:   "request_started",
 			Message: "Request started",
 			Context: map[string]interface{}{
@@ -82,7 +82,7 @@ func TraceIDMiddleware(logger *CommonLogger) gin.HandlerFunc {
 		end := time.Now()
 		logger.Log(dto.LogEntry{
 			Level:   logrus.InfoLevel,
-			TraceID: traceID,
+			TraceId: traceID,
 			Event:   "request_finished",
 			Message: "Request finished",
 			Context: map[string]interface{}{
@@ -102,7 +102,7 @@ func LogFunctionExecution(logger *CommonLogger, ctx context.Context, fn func() e
 	start := time.Now()
 	logger.Log(dto.LogEntry{
 		Level:   logrus.DebugLevel,
-		TraceID: traceID,
+		TraceId: traceID,
 		Event:   "function_start",
 		Message: fnName + " started",
 	})
@@ -112,7 +112,7 @@ func LogFunctionExecution(logger *CommonLogger, ctx context.Context, fn func() e
 	end := time.Now()
 	logger.Log(dto.LogEntry{
 		Level:   logrus.DebugLevel,
-		TraceID: traceID,
+		TraceId: traceID,
 		Event:   "function_start",
 		Message: fnName + " started",
 		Context: map[string]interface{}{

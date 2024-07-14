@@ -27,7 +27,7 @@ func (this BalanceOperation) String() string {
 func ParseStringToBalanceOperation(str string) (BalanceOperation, error) {
 	t, ok := stringToBalanceOperation[str]
 	if !ok {
-		return 0, errors.New("invalid topup type: " + str)
+		return 0, errors.New("invalid balance operation: " + str)
 	}
 	return t, nil
 }

@@ -23,13 +23,13 @@ import (
 
 func main() {
 	// Load environment variables
-	configs.LoadEnv()
+	configs.LoadEnv()()
 
 	// Initialize the database
-	configs.InitDatabase()
+	configs.InitDatabase()()
 
 	// Auto migrate the models
-	configs.AutoMigrateModels()
+	configs.AutoMigrateModels()()
 
 	// Set up routes
 	router := routes.SetupRouter()
