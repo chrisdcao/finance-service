@@ -69,7 +69,7 @@ func GracefulShutdown(httpServer *http.Server) {
 }
 
 func LoadEnvWithoutLogs() {
-	if err := godotenv.Load(".env"); err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 }

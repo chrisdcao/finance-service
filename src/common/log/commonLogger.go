@@ -20,21 +20,23 @@ func NewCommonLogger() *CommonLogger {
 	serviceName := utils.GetPackagePath()
 	logger := logrus.New()
 
-	// connect to logstash hook
-	logStashHookAddress, err := utils.GetEnvVariableFromKey("LOGSTASH_HOOK_ADDRESS")
-	if err != nil {
-		logger.Fatalf("Failed to rertieve LOGSTASH_HOOK_ADDRESS from .env: %v", err)
+	// Attempt to connect to Logstash
+	logStashHookAddress := os.Getenv("LOGSTASH_HOOK_ADDRESS")
+	if logStashHookAddress == "" {
+		logger.Warn("LOGSTASH_HOOK_ADDRESS environment variable is not set. Skipping Logstash hook setup.")
+	} else {
+		conn, err := net.Dial("tcp", logStashHookAddress)
+		if err != nil {
+			logger.Errorf("Failed to connect to Logstash: %v. Continuing without Logstash hook.", err)
+		} else {
+			hook := logrustash.New(conn, logrustash.DefaultFormatter(logrus.Fields{"type": "myappName"}))
+			logger.Hooks.Add(hook)
+			logger.Info("Successfully connected to Logstash")
+		}
 	}
-	conn, err := net.Dial("tcp", logStashHookAddress)
-	if err != nil {
-		logger.Fatalf("Failed to connect to Logstash: %v", err)
-	}
-	hook := logrustash.New(conn, logrustash.DefaultFormatter(logrus.Fields{"type": "myappName"}))
-	logger.Hooks.Add(hook)
 
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetOutput(os.Stdout) // set the std out for logstash to get
-	//logger.SetLevel(logrus.DebugLevel) // Set the appropriate log level
 
 	return &CommonLogger{
 		serviceName: serviceName,

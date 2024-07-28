@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  DB_HOST: "asmlink-cluster-1.cd66uiom6sob.ap-southeast-1.rds.amazonaws.com"
+  DB_NAME: "asmlinkdb"
+  APP_ENV: "production"
